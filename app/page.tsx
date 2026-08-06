@@ -1,71 +1,81 @@
 "use client";
 
+import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
 type Product = {
   id: string;
   index: string;
   name: string;
-  faName: string;
   price: string;
   full: string;
   detail: string;
   description: string;
   note: string;
+  detailText: string;
 };
 
 const products: Product[] = [
   {
     id: "tulips",
-    index: "01",
-    name: "TULIPS",
-    faName: "قلیان تیولیپس",
+    index: "۰۱",
+    name: "تیولیپس",
     price: "۱٬۹۵۰٬۰۰۰ تومان",
     full: "/images/products/tulips/full.jpg",
     detail: "/images/products/tulips/detail.jpg",
-    description: "فرم مجسمه‌وار و بازتاب طلایی؛ حضوری که پیش از اولین کام، میز را تعریف می‌کند.",
+    description: "فرمی مجسمه‌وار با بازتاب طلایی؛ حضوری که پیش از اولین کام، حال‌وهوای میز را تعریف می‌کند.",
     note: "سرو ویژه هوکا · انتخاب طعم با مهمان",
+    detailText: "نمای نزدیک از تاج طلایی و پرداخت صیقلی بدنه",
   },
   {
     id: "wookah",
-    index: "02",
-    name: "WOOKAH",
-    faName: "قلیان ووکا",
+    index: "۰۲",
+    name: "ووکا",
     price: "۱٬۴۰۰٬۰۰۰ تومان",
     full: "/images/products/wookah/full.jpg",
     detail: "/images/products/wookah/detail.jpg",
-    description: "سیلوئت کشیده و جزئیات دست‌ساز؛ برداشتی مدرن از یک آیین آشنا برای شب‌های طولانی.",
+    description: "سیلوئتی کشیده با جزئیات دست‌ساز؛ برداشتی مدرن از یک آیین آشنا برای شب‌های طولانی.",
     note: "سرو اختصاصی فرمونتی · طعم ترکیبی",
+    detailText: "جزئیات نقش بدنه، اتصالات فلزی و امضای ووکا",
   },
   {
     id: "arabic",
-    index: "03",
-    name: "ARABIC",
-    faName: "قلیان عربی",
+    index: "۰۳",
+    name: "عربی",
     price: "۱٬۰۵۰٬۰۰۰ تومان",
     full: "/images/products/arabic/full.jpg",
     detail: "/images/products/arabic/detail.jpg",
     description: "بدنه کلاسیک، فلز گرم و شیشه شفاف؛ اصالت سرو عربی در قاب امروزی هوکا.",
     note: "سرو کلاسیک · طعم‌های سنتی منتخب",
+    detailText: "پرداخت فلزی گرم و جزئیات آماده‌سازی سرو کلاسیک",
   },
   {
     id: "economy",
-    index: "04",
-    name: "ECONOMY",
-    faName: "قلیان اکونومی",
+    index: "۰۴",
+    name: "اکونومی",
     price: "۸۵۰٬۰۰۰ تومان",
     full: "/images/products/economy/full.jpg",
     detail: "/images/products/economy/detail.jpg",
     description: "مینیمال، شفاف و بی‌تکلف؛ تجربه کامل هوکا با تمرکز روی طعم و ریتم میز.",
     note: "سرو روزانه · انتخاب طعم با مهمان",
+    detailText: "نمای نزدیک از فرایند آماده‌سازی و کیفیت سرو",
   },
 ];
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(Math.max(value, min), max);
 
+function TypeLine({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
+  return (
+    <span className={`type-line ${className}`} style={{ "--line-delay": `${delay}ms` } as CSSProperties}>
+      <span>{children}</span>
+    </span>
+  );
+}
+
 export default function Home() {
   const [activeId, setActiveId] = useState("tulips");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [pastHero, setPastHero] = useState(false);
   const [ready, setReady] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
@@ -76,51 +86,81 @@ export default function Home() {
   const active = products.find((product) => product.id === activeId) ?? products[0];
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setReady(true), 1150);
+    const timer = window.setTimeout(() => setReady(true), 1100);
     return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
+    const motion = {
+      targetHero: 0,
+      currentHero: 0,
+      targetObject: 0,
+      currentObject: 0,
+      targetGallery: 0,
+      currentGallery: 0,
+      galleryTravel: 0,
+    };
     let frame = 0;
 
-    const update = () => {
-      frame = 0;
+    const measure = () => {
       const viewport = window.innerHeight;
 
       if (heroRef.current) {
         const rect = heroRef.current.getBoundingClientRect();
         const distance = Math.max(heroRef.current.offsetHeight - viewport, 1);
-        const progress = clamp(-rect.top / distance);
-        document.documentElement.style.setProperty("--hero-p", progress.toFixed(4));
-        setPastHero(progress > 0.72 || rect.bottom < viewport * 0.35);
+        motion.targetHero = clamp(-rect.top / distance);
+        setPastHero(motion.targetHero > 0.7 || rect.bottom < viewport * 0.35);
       }
 
       if (objectRef.current) {
         const rect = objectRef.current.getBoundingClientRect();
-        const progress = clamp((viewport - rect.top) / (viewport + rect.height));
-        document.documentElement.style.setProperty("--object-p", progress.toFixed(4));
+        motion.targetObject = clamp((viewport - rect.top) / (viewport + rect.height));
       }
 
       if (galleryRef.current && trackRef.current && window.innerWidth >= 760) {
         const rect = galleryRef.current.getBoundingClientRect();
         const distance = Math.max(galleryRef.current.offsetHeight - viewport, 1);
-        const progress = clamp(-rect.top / distance);
-        const travel = Math.max(trackRef.current.scrollWidth - window.innerWidth, 0);
-        trackRef.current.style.transform = `translate3d(${-progress * travel}px, 0, 0)`;
+        motion.targetGallery = clamp(-rect.top / distance);
+        motion.galleryTravel = Math.max(trackRef.current.scrollWidth - window.innerWidth, 0);
+      } else {
+        motion.targetGallery = 0;
+        motion.currentGallery = 0;
+        trackRef.current?.style.setProperty("transform", "none");
       }
     };
 
+    const render = () => {
+      const easing = 0.085;
+      motion.currentHero += (motion.targetHero - motion.currentHero) * easing;
+      motion.currentObject += (motion.targetObject - motion.currentObject) * easing;
+      motion.currentGallery += (motion.targetGallery - motion.currentGallery) * easing;
+
+      document.documentElement.style.setProperty("--hero-p", motion.currentHero.toFixed(4));
+      document.documentElement.style.setProperty("--object-p", motion.currentObject.toFixed(4));
+      if (trackRef.current && window.innerWidth >= 760) {
+        trackRef.current.style.transform = `translate3d(${-motion.currentGallery * motion.galleryTravel}px, 0, 0)`;
+      }
+
+      const moving =
+        Math.abs(motion.targetHero - motion.currentHero) > 0.0005 ||
+        Math.abs(motion.targetObject - motion.currentObject) > 0.0005 ||
+        Math.abs(motion.targetGallery - motion.currentGallery) > 0.0005;
+
+      frame = moving ? window.requestAnimationFrame(render) : 0;
+    };
+
     const requestUpdate = () => {
-      if (!frame) frame = window.requestAnimationFrame(update);
+      measure();
+      if (!frame) frame = window.requestAnimationFrame(render);
     };
 
     const observer = new IntersectionObserver(
       (entries) => entries.forEach((entry) => entry.target.classList.toggle("is-visible", entry.isIntersecting)),
-      { threshold: 0.14 },
+      { threshold: 0.16, rootMargin: "0px 0px -6% 0px" },
     );
-    document.querySelectorAll("[data-reveal]").forEach((element) => observer.observe(element));
+    document.querySelectorAll("[data-reveal], [data-type]").forEach((element) => observer.observe(element));
 
-    update();
+    requestUpdate();
     window.addEventListener("scroll", requestUpdate, { passive: true });
     window.addEventListener("resize", requestUpdate);
     return () => {
@@ -132,87 +172,90 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : "";
+    const locked = menuOpen || detailOpen;
+    document.body.style.overflow = locked ? "hidden" : "";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        setDetailOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
     };
-  }, [menuOpen]);
+  }, [menuOpen, detailOpen]);
 
   return (
     <>
       <div className={`loader ${ready ? "is-ready" : ""}`} aria-hidden="true">
-        <p>HOOKA</p>
-        <div><i /></div>
-        <span>FERMONTEE · TEHRAN</span>
+        <p>هوکا</p><div><i /></div><span>فرمونتی · تهران</span>
       </div>
 
       <header className={`topbar ${pastHero ? "is-light" : ""}`} aria-label="ناوبری اصلی">
         <button className="nav-box nav-menu" type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="site-menu">
-          <span>MENU</span><i aria-hidden="true" /><i aria-hidden="true" />
+          <span>فهرست</span><i aria-hidden="true" /><i aria-hidden="true" />
         </button>
-        <a className="wordmark" href="#top" aria-label="هوکا، بازگشت به ابتدا">HOOKA</a>
-        <a className="nav-box nav-cta" href="#menu"><em>Explore</em> THE MENU</a>
+        <a className="wordmark" href="#top" aria-label="هوکا، بازگشت به ابتدا">هوکا</a>
+        <a className="nav-box nav-cta" href="#menu">مشاهده منو</a>
       </header>
 
       <aside id="site-menu" className={`menu-overlay ${menuOpen ? "is-open" : ""}`} aria-hidden={!menuOpen}>
-        <button type="button" className="menu-close" onClick={() => setMenuOpen(false)}>CLOSE <span>×</span></button>
+        <button type="button" className="menu-close" onClick={() => setMenuOpen(false)}>بستن <span>×</span></button>
         <nav aria-label="فهرست صفحه">
           {[
-            ["01", "INTRO", "#top"],
-            ["02", "THE OBJECT", "#object"],
-            ["03", "COLLECTION", "#collection"],
-            ["04", "MENU", "#menu"],
+            ["۰۱", "معرفی", "#top"],
+            ["۰۲", "محصول شاخص", "#object"],
+            ["۰۳", "مجموعه", "#collection"],
+            ["۰۴", "منوی هوکا", "#menu"],
           ].map(([number, label, href]) => (
             <a href={href} key={label} onClick={() => setMenuOpen(false)}>
               <small>{number}</small><span>{label}</span><b>↙</b>
             </a>
           ))}
         </nav>
-        <div className="overlay-meta"><p>FERMONTEE · TEHRAN</p><p>A DIGITAL HOOKAH MENU</p></div>
+        <div className="overlay-meta"><p>فرمونتی · تهران</p><p>منوی دیجیتال هوکا</p></div>
       </aside>
 
       <main>
         <section className="hero-scroll" id="top" ref={heroRef} aria-labelledby="hero-title">
           <div className="hero-sticky">
             <div className="hero-frame">
-              <picture>
-                <source media="(max-width: 720px)" srcSet="/images/hero/hero-azure.jpg" />
-                <img src="/images/hero/hero-wide.jpg" alt="قلیان مدرن هوکا در فضای شبانه فرمونتی" fetchPriority="high" />
-              </picture>
+              <img src="/images/hero/hero-azure.jpg" alt="قلیان مدرن هوکا در فضای شبانه فرمونتی" fetchPriority="high" />
               <div className="hero-vignette" />
-              <h1 id="hero-title" className="sr-only">HOOKA — A ritual, reimagined.</h1>
-              <div className="hero-mobile-title">
-                <p>FERMONTEE PRESENTS</p><strong>HOO<em>K</em>A</strong><span>A ritual, reimagined.</span>
+              <div className={`hero-title ${ready ? "is-visible" : ""}`} id="hero-title" data-type>
+                <p>فرمونتی ارائه می‌کند</p>
+                <h1><TypeLine>آیین شب،</TypeLine><TypeLine delay={120} className="light">از نو.</TypeLine></h1>
+                <span>هوکا</span>
               </div>
-              <p className="hero-side-note">A QUIET EXPERIENCE<br />FOR SLOWER NIGHTS.</p>
-              <div className="hero-bottom"><span>SCROLL TO DISCOVER</span><i /><b>01 / 05</b></div>
+              <p className="hero-side-note">تجربه‌ای آرام<br />برای شب‌هایی آهسته‌تر</p>
+              <div className="hero-bottom"><span>برای کشف بیشتر اسکرول کنید</span><i /><b>۰۱ / ۰۵</b></div>
             </div>
           </div>
         </section>
 
         <section className="object-intro" id="object" ref={objectRef} aria-labelledby="object-title">
-          <div className="section-kicker" data-reveal><span>THE OBJECT</span><i /><span>جسم</span></div>
-          <div className="object-title" data-reveal>
-            <h2 id="object-title">A familiar ritual,<br /><em>made tangible.</em></h2>
-            <p>در قلب شب، فرم و طعم به یک تجربه تبدیل می‌شوند؛ آرام، دقیق و به‌یادماندنی.</p>
+          <div className="section-kicker" data-reveal><span>محصول شاخص</span><i /><span>جسم</span></div>
+          <div className="object-title" data-type>
+            <h2 id="object-title"><TypeLine>فرم، به تجربه</TypeLine><TypeLine delay={110} className="light">تبدیل می‌شود.</TypeLine></h2>
+            <p data-reveal>در قلب شب، فرم و طعم به یک تجربه تبدیل می‌شوند؛ آرام، دقیق و به‌یادماندنی.</p>
           </div>
 
           <div className="object-composition">
-            <p className="object-ghost" aria-hidden="true">THE OBJECT</p>
+            <p className="object-ghost" aria-hidden="true">هوکا</p>
             <div className="object-copy" data-reveal>
-              <span>PHASE 02</span>
-              <p>این قاب در مرحله بعد میزبان مدل سه‌بعدی واقعی خواهد بود؛ ساختار صفحه برای فایل GLB و کنترل اسکرولی آماده است.</p>
+              <span>مرحله بعد</span>
+              <p>این قاب در مرحله بعد میزبان مدل سه‌بعدی واقعی محصول خواهد بود و حرکت آن با ریتم اسکرول هماهنگ می‌شود.</p>
             </div>
-            <figure className="object-figure">
-              <img src="/images/products/tulips/full.jpg" alt="قلیان تیولیپس به‌عنوان محصول شاخص هوکا" loading="lazy" />
-            </figure>
-            <div className="object-index"><span>OBJECT</span><b>01</b><small>HOOKA COLLECTION</small></div>
+            <figure className="object-figure"><img src="/images/products/tulips/full.jpg" alt="قلیان تیولیپس به‌عنوان محصول شاخص هوکا" loading="lazy" /></figure>
+            <div className="object-index"><span>محصول</span><b>۰۱</b><small>مجموعه هوکا</small></div>
           </div>
         </section>
 
         <section className="manifesto" aria-label="مانیفست هوکا">
-          <p className="section-kicker" data-reveal>THE ESSENCE OF HOOKA</p>
-          <h2 data-reveal>where <em>FORM</em><br />meets RITUAL</h2>
+          <p className="section-kicker" data-reveal>جوهره هوکا</p>
+          <h2 data-type><TypeLine>جایی که فرم،</TypeLine><TypeLine delay={110} className="light">به آیین می‌رسد.</TypeLine></h2>
           <figure data-reveal><img src="/images/editorial/spectrum.jpg" alt="جزئیات فرم و رنگ هوکا" loading="lazy" /></figure>
           <p className="manifesto-copy" data-reveal>هر انتخاب، روایتی متفاوت از یک مکث مشترک است.</p>
         </section>
@@ -220,57 +263,57 @@ export default function Home() {
         <section className="gallery-scroll" id="collection" ref={galleryRef} aria-label="مجموعه محصولات هوکا">
           <div className="gallery-sticky">
             <div className="gallery-header">
-              <div className="section-kicker"><span>THE COLLECTION</span><i /><span>04 OBJECTS</span></div>
+              <div className="section-kicker"><span>مجموعه هوکا</span><i /><span>چهار محصول</span></div>
               <p>برای حرکت در مجموعه اسکرول کنید</p>
             </div>
             <div className="gallery-track" ref={trackRef}>
               <div className="gallery-opening">
-                <small>HOOKA · 2026</small>
-                <h2>Four ways<br /><em>to slow down.</em></h2>
+                <small>مجموعه سال ۱۴۰۵</small>
+                <h2 data-type><TypeLine>چهار روایت،</TypeLine><TypeLine delay={100} className="light">برای یک مکث.</TypeLine></h2>
               </div>
               {products.map((product) => (
                 <a className="gallery-card" href="#menu" key={product.id} onClick={() => setActiveId(product.id)}>
-                  <img src={product.full} alt={product.faName} loading="lazy" />
+                  <img src={product.full} alt={`قلیان ${product.name}`} loading="lazy" />
                   <div className="gallery-shade" />
-                  <div className="card-top"><span>{product.index} / 04</span><span>{product.faName}</span></div>
-                  <div className="card-title"><h3>{product.name}</h3><span>VIEW THE SERVE ↙</span></div>
+                  <div className="card-top"><span>{product.index} / ۰۴</span><span>قلیان {product.name}</span></div>
+                  <div className="card-title"><h3>{product.name}</h3><span>مشاهده سرو ↙</span></div>
                 </a>
               ))}
               <div className="gallery-closing">
-                <p>THE MENU</p><h2>Choose<br /><em>your ritual.</em></h2><span>04 SERVES · ONE NIGHT</span>
+                <p>منوی هوکا</p><h2>آیین خودت<br /><span className="light">را انتخاب کن.</span></h2><span>چهار سرو · یک شب</span>
               </div>
             </div>
           </div>
         </section>
 
         <section className="menu-section" id="menu" aria-labelledby="menu-title">
-          <div className="section-kicker" data-reveal><span>HOOKA MENU</span><i /><span>FERMONTEE</span></div>
-          <div className="menu-title" data-reveal>
-            <h2 id="menu-title">SELECT<br /><em>your experience.</em></h2>
-            <p>چهار انتخاب؛ از فرم مجسمه‌وار تا سرو کلاسیک.</p>
+          <div className="section-kicker" data-reveal><span>منوی هوکا</span><i /><span>فرمونتی</span></div>
+          <div className="menu-title" data-type>
+            <h2 id="menu-title"><TypeLine>تجربه‌ات را</TypeLine><TypeLine delay={110} className="light">انتخاب کن.</TypeLine></h2>
+            <p data-reveal>چهار انتخاب؛ از فرم مجسمه‌وار تا سرو کلاسیک.</p>
           </div>
 
           <div className="product-selector" role="tablist" aria-label="انتخاب مدل قلیان" data-reveal>
             {products.map((product) => (
               <button type="button" role="tab" aria-selected={active.id === product.id} className={active.id === product.id ? "is-active" : ""} key={product.id} onClick={() => setActiveId(product.id)}>
-                <small>{product.index}</small><span>{product.name}</span><i>{product.faName}</i>
+                <small>{product.index}</small><span>{product.name}</span><i>قلیان {product.name}</i>
               </button>
             ))}
           </div>
 
           <div className="menu-product">
             <article className="product-info" key={`${active.id}-info`}>
-              <div className="product-heading"><span>{active.index} / 04</span><h3>{active.name}</h3><p>{active.faName}</p></div>
+              <div className="product-heading"><span>{active.index} / ۰۴</span><h3>{active.name}</h3><p>قلیان {active.name}</p></div>
               <p className="product-description">{active.description}</p>
-              <div className="serve-detail">
-                <img src={active.detail} alt={`جزئیات ${active.faName}`} />
-                <div><span>THE SERVE</span><p>{active.note}</p></div>
-              </div>
+              <button className="serve-detail" type="button" onClick={() => setDetailOpen(true)} aria-label={`نمایش جزئیات قلیان ${active.name}`}>
+                <span className="detail-image"><img src={active.detail} alt={`جزئیات قلیان ${active.name}`} /><i>نمای نزدیک</i></span>
+                <span className="detail-copy"><small>جزئیات سرو</small><strong>{active.note}</strong><b>نمایش جزئیات ↙</b></span>
+              </button>
               <div className="product-price"><span>قیمت سرو</span><strong>{active.price}</strong></div>
             </article>
             <figure className="product-image" key={`${active.id}-image`}>
-              <img src={active.full} alt={active.faName} />
-              <figcaption><span>HOOKA / {active.index}</span><span>FERMONTEE · TEHRAN</span></figcaption>
+              <img src={active.full} alt={`قلیان ${active.name}`} />
+              <figcaption><span>هوکا / {active.index}</span><span>فرمونتی · تهران</span></figcaption>
             </figure>
           </div>
         </section>
@@ -281,20 +324,23 @@ export default function Home() {
             <figure><img src="/images/editorial/onyx.jpg" alt="مدل مشکی هوکا" loading="lazy" /></figure>
             <figure><img src="/images/editorial/spectrum.jpg" alt="مدل رنگی هوکا" loading="lazy" /></figure>
           </div>
-          <blockquote data-reveal>Designed for the table.<br /><em>Remembered after the night.</em></blockquote>
+          <blockquote data-type><TypeLine>برای میز طراحی شده؛</TypeLine><TypeLine delay={110} className="light">پس از شب، به یاد می‌ماند.</TypeLine></blockquote>
         </section>
       </main>
 
       <footer>
-        <div className="footer-meta"><span>FERMONTEE · TEHRAN</span><span>EST. 2026</span></div>
-        <div className="footer-center">
-          <p>THE NIGHT CAN WAIT.</p>
-          <h2>HOO<em>K</em>A</h2>
-          <span>تجربه‌ات را انتخاب کن.</span>
-          <a href="#menu">EXPLORE THE MENU <b>↙</b></a>
-        </div>
-        <div className="footer-bottom"><span>© 2026 HOOKA</span><a href="#top">BACK TO TOP ↑</a><span>BY FERMONTEE</span></div>
+        <div className="footer-meta"><span>فرمونتی · تهران</span><span>از سال ۱۴۰۵</span></div>
+        <div className="footer-center"><p>شب هنوز تمام نشده.</p><h2>هوکا</h2><span>تجربه‌ات را انتخاب کن.</span><a href="#menu">مشاهده منو <b>↙</b></a></div>
+        <div className="footer-bottom"><span>© ۱۴۰۵ هوکا</span><a href="#top">بازگشت به بالا ↑</a><span>در فرمونتی</span></div>
       </footer>
+
+      <div className={`detail-overlay ${detailOpen ? "is-open" : ""}`} aria-hidden={!detailOpen} role="dialog" aria-modal="true" aria-label={`جزئیات قلیان ${active.name}`}>
+        <button type="button" className="detail-close" onClick={() => setDetailOpen(false)}>بستن <span>×</span></button>
+        <div className="detail-stage">
+          <figure key={`${active.id}-detail`}><img src={active.detail} alt={active.detailText} /></figure>
+          <div className="detail-meta"><span>{active.index} / ۰۴</span><h2>{active.name}</h2><p>{active.detailText}</p><small>{active.note}</small></div>
+        </div>
+      </div>
     </>
   );
 }

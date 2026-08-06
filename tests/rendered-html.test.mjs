@@ -19,10 +19,10 @@ test("server-renders the Hooka landing page", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /HOOKA — A Ritual, Reimagined/i);
-  assert.match(html, /A ritual/);
-  assert.match(html, /TULIPS/);
-  assert.match(html, /WOOKAH/);
+  assert.match(html, /هوکا — آیین شب، از نو/);
+  assert.match(html, /آیین شب/);
+  assert.match(html, /تیولیپس/);
+  assert.match(html, /ووکا/);
   assert.match(html, /قلیان عربی/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });

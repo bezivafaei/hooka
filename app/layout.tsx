@@ -10,19 +10,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: new URL(origin),
-    title: "HOOKA — A Ritual, Reimagined",
-    description: "منوی دیجیتال پریمیوم هوکا در فرمونتی؛ چهار تجربه برای آهسته‌تر شدن شب.",
+    title: "هوکا — آیین شب، از نو",
+    description: "منوی دیجیتال هوکا در فرمونتی؛ چهار تجربه برای شب‌هایی آهسته‌تر.",
     openGraph: {
-      title: "HOOKA — A Ritual, Reimagined",
-      description: "A premium digital hookah menu by Fermontee.",
+      title: "هوکا — آیین شب، از نو",
+      description: "منوی دیجیتال هوکا در فرمونتی؛ چهار تجربه برای شب‌هایی آهسته‌تر.",
       type: "website",
       locale: "fa_IR",
-      images: [{ url: `${origin}/og.png`, width: 1732, height: 906, alt: "HOOKA — A Ritual, Reimagined" }],
+      images: [{ url: `${origin}/og.png`, width: 1732, height: 906, alt: "هوکا — آیین شب، از نو" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "HOOKA — A Ritual, Reimagined",
-      description: "A premium digital hookah menu by Fermontee.",
+      title: "هوکا — آیین شب، از نو",
+      description: "منوی دیجیتال هوکا در فرمونتی.",
       images: [`${origin}/og.png`],
     },
   };
