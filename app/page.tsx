@@ -77,6 +77,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [pastHero, setPastHero] = useState(false);
+  const [headerOnDark, setHeaderOnDark] = useState(false);
   const [ready, setReady] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const objectRef = useRef<HTMLElement>(null);
@@ -91,6 +92,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const galleryElement = galleryRef.current;
+    const trackElement = trackRef.current;
     const motion = {
       targetHero: 0,
       currentHero: 0,
@@ -101,6 +104,26 @@ export default function Home() {
       galleryTravel: 0,
     };
     let frame = 0;
+    let previousTime = performance.now();
+    let previousPastHero = false;
+    let previousHeaderOnDark = false;
+    let disposed = false;
+    const darkHeaderSections = Array.from(document.querySelectorAll<HTMLElement>(".gallery-scroll, footer"));
+
+    const syncGalleryGeometry = () => {
+      const gallery = galleryElement;
+      const track = trackElement;
+      if (!gallery || !track) return;
+
+      if (window.innerWidth < 760) {
+        gallery.style.removeProperty("height");
+        motion.galleryTravel = 0;
+        return;
+      }
+
+      motion.galleryTravel = Math.max(track.scrollWidth - window.innerWidth, 0);
+      gallery.style.height = `${Math.ceil(window.innerHeight + motion.galleryTravel)}px`;
+    };
 
     const measure = () => {
       const viewport = window.innerHeight;
@@ -109,7 +132,11 @@ export default function Home() {
         const rect = heroRef.current.getBoundingClientRect();
         const distance = Math.max(heroRef.current.offsetHeight - viewport, 1);
         motion.targetHero = clamp(-rect.top / distance);
-        setPastHero(motion.targetHero > 0.7 || rect.bottom < viewport * 0.35);
+        const nextPastHero = motion.targetHero > 0.62 || rect.bottom < viewport * 0.35;
+        if (nextPastHero !== previousPastHero) {
+          previousPastHero = nextPastHero;
+          setPastHero(nextPastHero);
+        }
       }
 
       if (objectRef.current) {
@@ -121,22 +148,35 @@ export default function Home() {
         const rect = galleryRef.current.getBoundingClientRect();
         const distance = Math.max(galleryRef.current.offsetHeight - viewport, 1);
         motion.targetGallery = clamp(-rect.top / distance);
-        motion.galleryTravel = Math.max(trackRef.current.scrollWidth - window.innerWidth, 0);
       } else {
         motion.targetGallery = 0;
         motion.currentGallery = 0;
         trackRef.current?.style.setProperty("transform", "none");
       }
+
+      const headerProbe = 48;
+      const nextHeaderOnDark = darkHeaderSections.some((section) => {
+        const rect = section.getBoundingClientRect();
+        return rect.top <= headerProbe && rect.bottom >= headerProbe;
+      });
+      if (nextHeaderOnDark !== previousHeaderOnDark) {
+        previousHeaderOnDark = nextHeaderOnDark;
+        setHeaderOnDark(nextHeaderOnDark);
+      }
     };
 
-    const render = () => {
-      const easing = 0.085;
-      motion.currentHero += (motion.targetHero - motion.currentHero) * easing;
-      motion.currentObject += (motion.targetObject - motion.currentObject) * easing;
-      motion.currentGallery += (motion.targetGallery - motion.currentGallery) * easing;
+    const render = (time: number) => {
+      const delta = Math.min(Math.max(time - previousTime, 1), 40);
+      previousTime = time;
+      const sceneEase = 1 - Math.exp(-delta / 175);
+      const galleryEase = 1 - Math.exp(-delta / 220);
+      motion.currentHero += (motion.targetHero - motion.currentHero) * sceneEase;
+      motion.currentObject += (motion.targetObject - motion.currentObject) * sceneEase;
+      motion.currentGallery += (motion.targetGallery - motion.currentGallery) * galleryEase;
 
       document.documentElement.style.setProperty("--hero-p", motion.currentHero.toFixed(4));
       document.documentElement.style.setProperty("--object-p", motion.currentObject.toFixed(4));
+      document.documentElement.style.setProperty("--gallery-p", motion.currentGallery.toFixed(4));
       if (trackRef.current && window.innerWidth >= 760) {
         trackRef.current.style.transform = `translate3d(${-motion.currentGallery * motion.galleryTravel}px, 0, 0)`;
       }
@@ -151,7 +191,15 @@ export default function Home() {
 
     const requestUpdate = () => {
       measure();
-      if (!frame) frame = window.requestAnimationFrame(render);
+      if (!frame) {
+        previousTime = performance.now();
+        frame = window.requestAnimationFrame(render);
+      }
+    };
+
+    const handleResize = () => {
+      syncGalleryGeometry();
+      requestUpdate();
     };
 
     const observer = new IntersectionObserver(
@@ -160,13 +208,28 @@ export default function Home() {
     );
     document.querySelectorAll("[data-reveal], [data-type]").forEach((element) => observer.observe(element));
 
+    const resizeObserver = new ResizeObserver(() => {
+      syncGalleryGeometry();
+      requestUpdate();
+    });
+    if (trackRef.current) resizeObserver.observe(trackRef.current);
+
+    syncGalleryGeometry();
+    document.fonts.ready.then(() => {
+      if (disposed) return;
+      syncGalleryGeometry();
+      requestUpdate();
+    });
     requestUpdate();
     window.addEventListener("scroll", requestUpdate, { passive: true });
-    window.addEventListener("resize", requestUpdate);
+    window.addEventListener("resize", handleResize);
     return () => {
+      disposed = true;
       observer.disconnect();
+      resizeObserver.disconnect();
       window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("resize", requestUpdate);
+      window.removeEventListener("resize", handleResize);
+      galleryElement?.style.removeProperty("height");
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
@@ -193,7 +256,7 @@ export default function Home() {
         <p>هوکا</p><div><i /></div><span>فرمونتی · تهران</span>
       </div>
 
-      <header className={`topbar ${pastHero ? "is-light" : ""}`} aria-label="ناوبری اصلی">
+      <header className={`topbar ${pastHero ? "is-light" : ""} ${headerOnDark ? "is-dark" : ""}`} aria-label="ناوبری اصلی">
         <button className="nav-box nav-menu" type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="site-menu">
           <span>فهرست</span><i aria-hidden="true" /><i aria-hidden="true" />
         </button>
@@ -231,6 +294,7 @@ export default function Home() {
               </div>
               <p className="hero-side-note">تجربه‌ای آرام<br />برای شب‌هایی آهسته‌تر</p>
               <div className="hero-bottom"><span>برای کشف بیشتر اسکرول کنید</span><i /><b>۰۱ / ۰۵</b></div>
+              <div className="hero-shrink-meta" aria-hidden="true"><span>هوکا / فرمونتی</span><span>تهران · ۱۴۰۵</span></div>
             </div>
           </div>
         </section>
@@ -256,15 +320,21 @@ export default function Home() {
         <section className="manifesto" aria-label="مانیفست هوکا">
           <p className="section-kicker" data-reveal>جوهره هوکا</p>
           <h2 data-type><TypeLine>جایی که فرم،</TypeLine><TypeLine delay={110} className="light">به آیین می‌رسد.</TypeLine></h2>
-          <figure data-reveal><img src="/images/editorial/spectrum.jpg" alt="جزئیات فرم و رنگ هوکا" loading="lazy" /></figure>
-          <p className="manifesto-copy" data-reveal>هر انتخاب، روایتی متفاوت از یک مکث مشترک است.</p>
+          <div className="manifesto-stage">
+            <div className="manifesto-note" data-reveal>
+              <span>فصل دوم / تجربه</span>
+              <p>هر انتخاب، روایتی متفاوت از یک مکث مشترک است؛ با جزئیاتی که برای دیده‌شدن از نزدیک طراحی شده‌اند.</p>
+            </div>
+            <figure data-reveal><img src="/images/editorial/spectrum.jpg" alt="جزئیات فرم و رنگ هوکا" loading="lazy" /></figure>
+            <div className="manifesto-index" data-reveal><b>۰۴</b><span>فرم متفاوت<br />برای چهار حال‌وهوا</span></div>
+          </div>
         </section>
 
         <section className="gallery-scroll" id="collection" ref={galleryRef} aria-label="مجموعه محصولات هوکا">
           <div className="gallery-sticky">
             <div className="gallery-header">
               <div className="section-kicker"><span>مجموعه هوکا</span><i /><span>چهار محصول</span></div>
-              <p>برای حرکت در مجموعه اسکرول کنید</p>
+              <div className="gallery-progress" aria-hidden="true"><span>حرکت در مجموعه</span><i><b /></i><em>۰۱ — ۰۴</em></div>
             </div>
             <div className="gallery-track" ref={trackRef}>
               <div className="gallery-opening">
@@ -328,10 +398,33 @@ export default function Home() {
         </section>
       </main>
 
-      <footer>
-        <div className="footer-meta"><span>فرمونتی · تهران</span><span>از سال ۱۴۰۵</span></div>
-        <div className="footer-center"><p>شب هنوز تمام نشده.</p><h2>هوکا</h2><span>تجربه‌ات را انتخاب کن.</span><a href="#menu">مشاهده منو <b>↙</b></a></div>
-        <div className="footer-bottom"><span>© ۱۴۰۵ هوکا</span><a href="#top">بازگشت به بالا ↑</a><span>در فرمونتی</span></div>
+      <footer id="contact">
+        <div className="footer-meta"><span>هوکا در فرمونتی</span><span>تهران · شهرک غرب</span></div>
+
+        <div className="footer-statement" data-type>
+          <p>پایان منو، آغاز یک شب آرام</p>
+          <h2><TypeLine>برای یک مکث،</TypeLine><TypeLine delay={110} className="light">وقت هست.</TypeLine></h2>
+        </div>
+
+        <div className="footer-contact-grid" data-reveal>
+          <section>
+            <small>نشانی</small>
+            <a href="https://www.google.com/maps/search/?api=1&query=Fermontee+Restaurant+Tehran" target="_blank" rel="noreferrer">تهران، شهرک غرب، خیابان ایران‌زمین، خیابان مهستان، نبش کوچه دوم <b>↗</b></a>
+          </section>
+          <section>
+            <small>رزرو و تماس</small>
+            <a className="footer-phone" href="tel:+989912221025" dir="ltr">۰۹۹۱ ۲۲۲ ۱۰۲۵</a>
+            <span>هر روز، از ۸:۰۰ تا ۲۴:۰۰</span>
+          </section>
+          <section>
+            <small>ارتباط</small>
+            <a href="https://www.instagram.com/fermontee.restaurant/" target="_blank" rel="noreferrer">اینستاگرام <b>↗</b></a>
+            <a href="https://wa.me/message/44UP6TCPTX6CB1" target="_blank" rel="noreferrer">واتساپ <b>↗</b></a>
+          </section>
+        </div>
+
+        <div className="footer-word" aria-hidden="true">هوکا</div>
+        <div className="footer-bottom"><span>© ۱۴۰۵ هوکا · فرمونتی</span><a href="#top">بازگشت به بالا ↑</a><span>از صبحانه تا شام، میزبان شما</span></div>
       </footer>
 
       <div className={`detail-overlay ${detailOpen ? "is-open" : ""}`} aria-hidden={!detailOpen} role="dialog" aria-modal="true" aria-label={`جزئیات قلیان ${active.name}`}>
