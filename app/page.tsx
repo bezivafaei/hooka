@@ -370,10 +370,7 @@ export default function Home() {
 
             {/* Top Floating Header on Image */}
             <div className="menu-canvas-topbar">
-              <div className="canvas-badge-wrap">
-                <span className="showcase-badge">{active.badge}</span>
-                <span className="showcase-brand-hint">فرمونتی · تهران</span>
-              </div>
+              <span className="showcase-brand-hint">فرمونتی · تهران</span>
               <span className="showcase-counter">{active.index} / ۰۴</span>
             </div>
 
