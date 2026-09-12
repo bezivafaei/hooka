@@ -19,7 +19,7 @@ const productSteps: ProductStep[] = [
     name: "آغاز شب",
     subtitle: "Night Gatherings",
     line: "برای شروعِ گپ‌های طولانی با رفقا.",
-    src: "/images/closing/closing-01.jpg",
+    src: "/images/closing/closing-01.webp",
     alt: "آیین شب‌های هوکا در فرمونتی",
   },
   {
@@ -27,7 +27,7 @@ const productSteps: ProductStep[] = [
     name: "دورهمی دوستانه",
     subtitle: "Midnight Laughs",
     line: "خنده‌هایی که فقط حوالی نیمه‌شب سر می‌رسند.",
-    src: "/images/closing/closing-02.jpg",
+    src: "/images/closing/closing-02.webp",
     alt: "دورهمی دوستانه شبانه در فرمونتی",
   },
   {
@@ -35,7 +35,7 @@ const productSteps: ProductStep[] = [
     name: "مکث آرام",
     subtitle: "Timeless Moments",
     line: "وقتی صحبت‌ها گل می‌اندازد و زمان گم می‌شود.",
-    src: "/images/closing/closing-03.jpg",
+    src: "/images/closing/closing-03.webp",
     alt: "مکث آرام و لحظات ماندگار شب",
   },
   {
@@ -43,7 +43,7 @@ const productSteps: ProductStep[] = [
     name: "شب‌های ماندگار",
     subtitle: "Fermontee Nights",
     line: "شب‌هایی در فرمونتی که دلت نمی‌خواهد تمام شوند.",
-    src: "/images/closing/closing-04.jpg",
+    src: "/images/closing/closing-04.webp",
     alt: "شب‌های به یادماندنی در فرمونتی تهران",
   },
 ];

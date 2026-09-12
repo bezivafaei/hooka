@@ -35,7 +35,7 @@ const products: Product[] = [
     name: "قلیان آنیما تیولیپس",
     price: "۱٬۹۵۰٬۰۰۰ تومان",
     priceNum: 1950000,
-    full: "/images/products/tulips/full.jpg",
+    full: "/images/products/tulips/full.webp",
     detail: "/images/products/tulips/detail.jpg",
     badge: "لوکس‌ترین سرو",
     description: "فرمی مجسمه‌وار با تاج طلایی دست‌ساز؛ شاهکار طراحی با بازتاب طلایی که شخصیت و شکوه میز را کامل می‌کند.",
@@ -54,7 +54,7 @@ const products: Product[] = [
     name: "قلیان چوبی ووکا",
     price: "۱٬۴۵۰٬۰۰۰ تومان",
     priceNum: 1450000,
-    full: "/images/products/wookah/full.jpg",
+    full: "/images/products/wookah/full.webp",
     detail: "/images/products/wookah/detail.jpg",
     badge: "دست‌ساز اروپایی",
     description: "خطوط کشیده، بدنه چوب طبیعی و کریستال سنگین دست‌ساز تراش‌خورده؛ بازخوانی معاصر از سروی اصیل و باوقار.",
@@ -73,7 +73,7 @@ const products: Product[] = [
     name: "قلیان عربی کلاسیک",
     price: "۱٬۰۵۰٬۰۰۰ تومان",
     priceNum: 1050000,
-    full: "/images/products/arabic/full.jpg",
+    full: "/images/products/arabic/full.webp",
     detail: "/images/products/arabic/detail.jpg",
     badge: "اصیل و سنگین",
     description: "بدنه برنجی کلاسیک با قلم‌زنی سنتی، فلز گرم و شیشه هفت‌رنگ شفاف؛ اصالت و خاطره نوستالژیک در فضایی مدرن.",
@@ -92,7 +92,7 @@ const products: Product[] = [
     name: "قلیان مدرن اکونومی",
     price: "۸۵۰٬۰۰۰ تومان",
     priceNum: 850000,
-    full: "/images/products/economy/full.jpg",
+    full: "/images/products/economy/full.webp",
     detail: "/images/products/economy/detail.jpg",
     badge: "شفاف و مینیمال",
     description: "ارگونومیک و تماماً شفاف؛ متمرکز بر خلوص عطر میوه‌ها با کام‌دهی سبک و روان بدون ذره‌ای اغراق.",
@@ -109,17 +109,50 @@ const products: Product[] = [
 const clamp = (value: number, min = 0, max = 1) => Math.min(Math.max(value, min), max);
 
 export default function Home() {
-  const [activeId, setActiveId] = useState("tulips");
+  const [activeId, setActiveId] = useState<string>("tulips");
+  const [selectedFlavors, setSelectedFlavors] = useState<string[]>([
+    "ترکیب ویژه فرمونتی",
+    "شب‌های مسکو",
+  ]);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [selectedFlavors, setSelectedFlavors] = useState<string[]>(["ترکیب ویژه فرمونتی"]);
   const [pastHero, setPastHero] = useState(false);
   const [headerOnDark, setHeaderOnDark] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
+  const touchStartXRef = useRef<number>(0);
+  const touchStartYRef = useRef<number>(0);
 
   const active = products.find((product) => product.id === activeId) ?? products[0];
 
   const selectProduct = (productId: string) => {
     setActiveId(productId);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length > 0) {
+      touchStartXRef.current = e.touches[0].clientX;
+      touchStartYRef.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (e.changedTouches.length > 0) {
+      const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+      const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+
+      // Ensure horizontal swipe is dominant and exceeds threshold (40px)
+      if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+        const currentIndex = products.findIndex((p) => p.id === activeId);
+        if (deltaX < 0) {
+          // Swipe to left -> next model
+          const nextIndex = (currentIndex + 1) % products.length;
+          selectProduct(products[nextIndex].id);
+        } else {
+          // Swipe to right -> prev model
+          const prevIndex = (currentIndex - 1 + products.length) % products.length;
+          selectProduct(products[prevIndex].id);
+        }
+      }
+    }
   };
 
   const toggleFlavor = (flavor: string) => {
@@ -279,7 +312,7 @@ export default function Home() {
           <div className="hero-sticky">
             <div className="hero-frame">
               <img
-                src="/images/hero/hero-azure.jpg"
+                src="/images/hero/hero-azure.webp"
                 alt="قلیان مدرن هوکا در فضای شبانه فرمونتی"
                 width={1601}
                 height={2400}
@@ -315,7 +348,12 @@ export default function Home() {
           </div>
 
           {/* Unified Full-Screen Editorial Canvas Card */}
-          <div className="menu-unified-fullscreen-card" key={active.id}>
+          <div
+            className="menu-unified-fullscreen-card"
+            key={active.id}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             {/* Background Full-Bleed Image */}
             <div className="menu-canvas-bg">
               <img

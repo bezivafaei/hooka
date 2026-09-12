@@ -10,7 +10,7 @@ const FRAME_BASE = "/images/manifesto/frames/frame";
 const clamp = (value: number, min = 0, max = 1) => Math.min(Math.max(value, min), max);
 
 function framePath(index: number) {
-  return `${FRAME_BASE}-${String(index + 1).padStart(3, "0")}.jpg`;
+  return `${FRAME_BASE}-${String(index + 1).padStart(3, "0")}.webp`;
 }
 
 function drawContain(
@@ -311,14 +311,25 @@ export function ManifestoScroll() {
     };
 
     syncHeight();
-    preloadAllFrames();
+    loadFrame(0);
     requestUpdate();
+
+    const prefetchObserver = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        preloadAllFrames();
+        prefetchObserver.disconnect();
+      },
+      { rootMargin: "350px 0px" },
+    );
+    prefetchObserver.observe(section);
 
     window.addEventListener("scroll", requestUpdate, { passive: true });
     window.addEventListener("resize", handleResize);
 
     return () => {
       disposed = true;
+      prefetchObserver.disconnect();
       window.removeEventListener("scroll", requestUpdate);
       window.removeEventListener("resize", handleResize);
       if (raf) window.cancelAnimationFrame(raf);
@@ -336,12 +347,12 @@ export function ManifestoScroll() {
           <div className="manifesto-vignette" aria-hidden="true" />
         </div>
 
-        {/* Floating Minimalist Fruit Visuals - Clean Alpha PNGs, Defocus Blur Motion */}
+        {/* Floating Minimalist Fruit Visuals - Clean Alpha WebP, Defocus Blur Motion */}
         <aside className="flavor-showcase flavor-showcase-apple" ref={appleFloatRef} aria-label="طعم سیب و نعناع">
           <div className="flavor-showcase-inner">
             <div className="flavor-art-wrap">
               <img
-                src="/images/flavors/apple-minimal.png"
+                src="/images/flavors/apple-minimal.webp"
                 alt="برش سیب و نعناع تازه"
                 width={716}
                 height={629}
@@ -356,7 +367,7 @@ export function ManifestoScroll() {
           <div className="flavor-showcase-inner">
             <div className="flavor-art-wrap">
               <img
-                src="/images/flavors/grape-minimal.png"
+                src="/images/flavors/grape-minimal.webp"
                 alt="خوشه انگور سیاه تازه با برگ مو"
                 width={645}
                 height={820}
@@ -371,7 +382,7 @@ export function ManifestoScroll() {
           <div className="flavor-showcase-inner">
             <div className="flavor-art-wrap">
               <img
-                src="/images/flavors/citrus-minimal.png"
+                src="/images/flavors/citrus-minimal.webp"
                 alt="برش لیمو و نعناع تازه"
                 width={813}
                 height={772}
