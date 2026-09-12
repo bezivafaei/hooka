@@ -1,129 +1,160 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import { ClosingGallery } from "./closing-gallery";
+import { ManifestoScroll } from "./manifesto-scroll";
+import { TypeLine } from "./type-line";
+
+type ProductSpec = {
+  material: string;
+  bodyStrength: string;
+  duration: string;
+};
 
 type Product = {
   id: string;
   index: string;
+  shortName: string;
   name: string;
   price: string;
+  priceNum: number;
   full: string;
   detail: string;
+  badge: string;
   description: string;
   note: string;
   detailText: string;
+  specs: ProductSpec;
 };
 
 const products: Product[] = [
   {
     id: "tulips",
     index: "۰۱",
-    name: "تیولیپس",
+    shortName: "تیولیپس",
+    name: "قلیان آنیما تیولیپس",
     price: "۱٬۹۵۰٬۰۰۰ تومان",
+    priceNum: 1950000,
     full: "/images/products/tulips/full.jpg",
     detail: "/images/products/tulips/detail.jpg",
-    description: "فرمی مجسمه‌وار با بازتاب طلایی؛ حضوری که پیش از اولین کام، حال‌وهوای میز را تعریف می‌کند.",
-    note: "سرو ویژه هوکا · انتخاب طعم با مهمان",
-    detailText: "نمای نزدیک از تاج طلایی و پرداخت صیقلی بدنه",
+    badge: "لوکس‌ترین سرو",
+    description: "فرمی مجسمه‌وار با تاج طلایی دست‌ساز؛ شاهکار طراحی با بازتاب طلایی که شخصیت و شکوه میز را کامل می‌کند.",
+    note: "سرو لوکس فرمونتی · آبکاری طلا ۲۴ عیار",
+    detailText: "تاج برنجی با آبکاری طلای ۲۴ عیار، بدنه صیقلی دودی و کام‌دهی فوق‌العاده نرم",
+    specs: {
+      material: "برنج طلاکاری ۲۴ عیار و شیشه پیرکس",
+      bodyStrength: "پرحجم و مخملی",
+      duration: "۱۲۰ دقیقه ماندگاری کام",
+    },
   },
   {
     id: "wookah",
     index: "۰۲",
-    name: "ووکا",
-    price: "۱٬۴۰۰٬۰۰۰ تومان",
+    shortName: "ووکا",
+    name: "قلیان چوبی ووکا",
+    price: "۱٬۴۵۰٬۰۰۰ تومان",
+    priceNum: 1450000,
     full: "/images/products/wookah/full.jpg",
     detail: "/images/products/wookah/detail.jpg",
-    description: "سیلوئتی کشیده با جزئیات دست‌ساز؛ برداشتی مدرن از یک آیین آشنا برای شب‌های طولانی.",
-    note: "سرو اختصاصی فرمونتی · طعم ترکیبی",
-    detailText: "جزئیات نقش بدنه، اتصالات فلزی و امضای ووکا",
+    badge: "دست‌ساز اروپایی",
+    description: "خطوط کشیده، بدنه چوب طبیعی و کریستال سنگین دست‌ساز تراش‌خورده؛ بازخوانی معاصر از سروی اصیل و باوقار.",
+    note: "سرو اختصاصی ووکا · اتصالات استیل ۳۱۶",
+    detailText: "نقوش منبت چوب طبیعی، سوپاپ مخفی، اتصالات استیل ۳۱۶ و امضای ووکا",
+    specs: {
+      material: "چوب طبیعی بلوط و کریستال تراش الماس",
+      bodyStrength: "متوسط و عمیق",
+      duration: "۱۱۰ دقیقه ماندگاری کام",
+    },
   },
   {
     id: "arabic",
     index: "۰۳",
-    name: "عربی",
+    shortName: "عربی",
+    name: "قلیان عربی کلاسیک",
     price: "۱٬۰۵۰٬۰۰۰ تومان",
+    priceNum: 1050000,
     full: "/images/products/arabic/full.jpg",
     detail: "/images/products/arabic/detail.jpg",
-    description: "بدنه کلاسیک، فلز گرم و شیشه شفاف؛ اصالت سرو عربی در قاب امروزی هوکا.",
-    note: "سرو کلاسیک · طعم‌های سنتی منتخب",
-    detailText: "پرداخت فلزی گرم و جزئیات آماده‌سازی سرو کلاسیک",
+    badge: "اصیل و سنگین",
+    description: "بدنه برنجی کلاسیک با قلم‌زنی سنتی، فلز گرم و شیشه هفت‌رنگ شفاف؛ اصالت و خاطره نوستالژیک در فضایی مدرن.",
+    note: "سرو کلاسیک خاورمیانه‌ای · قلم‌زنی دستی",
+    detailText: "قلم‌زنی دست‌ساز فلز گرم برنجی، شلنگ سنتی چرمی و شیوه دود عمیق",
+    specs: {
+      material: "برنج ریخته‌گری دست‌ساز و شیشه متالیک",
+      bodyStrength: "سنگین و دودی",
+      duration: "۹۰ دقیقه ماندگاری کام",
+    },
   },
   {
     id: "economy",
     index: "۰۴",
-    name: "اکونومی",
+    shortName: "اکونومی",
+    name: "قلیان مدرن اکونومی",
     price: "۸۵۰٬۰۰۰ تومان",
+    priceNum: 850000,
     full: "/images/products/economy/full.jpg",
     detail: "/images/products/economy/detail.jpg",
-    description: "مینیمال، شفاف و بی‌تکلف؛ تجربه کامل هوکا با تمرکز روی طعم و ریتم میز.",
-    note: "سرو روزانه · انتخاب طعم با مهمان",
-    detailText: "نمای نزدیک از فرایند آماده‌سازی و کیفیت سرو",
+    badge: "شفاف و مینیمال",
+    description: "ارگونومیک و تماماً شفاف؛ متمرکز بر خلوص عطر میوه‌ها با کام‌دهی سبک و روان بدون ذره‌ای اغراق.",
+    note: "سرو مدرن · مخزن پیرکس مقاوم",
+    detailText: "بدنه پیرکس مقاوم به شوک حرارتی، سوپاپ روان و لوله صیقلی استیل",
+    specs: {
+      material: "شیشه پیرکس فشرده و استیل ۳۰۴",
+      bodyStrength: "سبک و روان",
+      duration: "۸۰ دقیقه ماندگاری کام",
+    },
   },
 ];
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(Math.max(value, min), max);
 
-function TypeLine({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
-  return (
-    <span className={`type-line ${className}`} style={{ "--line-delay": `${delay}ms` } as CSSProperties}>
-      <span>{children}</span>
-    </span>
-  );
-}
-
 export default function Home() {
   const [activeId, setActiveId] = useState("tulips");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedFlavors, setSelectedFlavors] = useState<string[]>(["ترکیب ویژه فرمونتی"]);
   const [pastHero, setPastHero] = useState(false);
   const [headerOnDark, setHeaderOnDark] = useState(false);
-  const [ready, setReady] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
-  const objectRef = useRef<HTMLElement>(null);
-  const galleryRef = useRef<HTMLElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
 
   const active = products.find((product) => product.id === activeId) ?? products[0];
 
+  const selectProduct = (productId: string) => {
+    setActiveId(productId);
+  };
+
+  const toggleFlavor = (flavor: string) => {
+    setSelectedFlavors((current) => {
+      if (current.includes(flavor)) {
+        return current.length > 1 ? current.filter((item) => item !== flavor) : current;
+      }
+      return current.length < 2 ? [...current, flavor] : [current[1], flavor];
+    });
+  };
+
   useEffect(() => {
-    const timer = window.setTimeout(() => setReady(true), 1100);
-    return () => window.clearTimeout(timer);
+    for (const src of [
+      "/images/editorial/lineup.jpg",
+      "/images/editorial/onyx.jpg",
+      "/images/products/arabic/detail.jpg",
+    ]) {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = src;
+    }
   }, []);
 
   useEffect(() => {
-    const galleryElement = galleryRef.current;
-    const trackElement = trackRef.current;
     const motion = {
       targetHero: 0,
       currentHero: 0,
-      targetObject: 0,
-      currentObject: 0,
-      targetGallery: 0,
-      currentGallery: 0,
-      galleryTravel: 0,
     };
     let frame = 0;
     let previousTime = performance.now();
     let previousPastHero = false;
     let previousHeaderOnDark = false;
-    let disposed = false;
-    const darkHeaderSections = Array.from(document.querySelectorAll<HTMLElement>(".gallery-scroll, footer"));
-
-    const syncGalleryGeometry = () => {
-      const gallery = galleryElement;
-      const track = trackElement;
-      if (!gallery || !track) return;
-
-      if (window.innerWidth < 760) {
-        gallery.style.removeProperty("height");
-        motion.galleryTravel = 0;
-        return;
-      }
-
-      motion.galleryTravel = Math.max(track.scrollWidth - window.innerWidth, 0);
-      gallery.style.height = `${Math.ceil(window.innerHeight + motion.galleryTravel)}px`;
-    };
+    const darkHeaderSections = Array.from(
+      document.querySelectorAll<HTMLElement>(".manifesto-scroll, .closing-scroll, footer"),
+    );
 
     const measure = () => {
       const viewport = window.innerHeight;
@@ -137,21 +168,6 @@ export default function Home() {
           previousPastHero = nextPastHero;
           setPastHero(nextPastHero);
         }
-      }
-
-      if (objectRef.current) {
-        const rect = objectRef.current.getBoundingClientRect();
-        motion.targetObject = clamp((viewport - rect.top) / (viewport + rect.height));
-      }
-
-      if (galleryRef.current && trackRef.current && window.innerWidth >= 760) {
-        const rect = galleryRef.current.getBoundingClientRect();
-        const distance = Math.max(galleryRef.current.offsetHeight - viewport, 1);
-        motion.targetGallery = clamp(-rect.top / distance);
-      } else {
-        motion.targetGallery = 0;
-        motion.currentGallery = 0;
-        trackRef.current?.style.setProperty("transform", "none");
       }
 
       const headerProbe = 48;
@@ -169,23 +185,20 @@ export default function Home() {
       const delta = Math.min(Math.max(time - previousTime, 1), 40);
       previousTime = time;
       const sceneEase = 1 - Math.exp(-delta / 175);
-      const galleryEase = 1 - Math.exp(-delta / 220);
-      motion.currentHero += (motion.targetHero - motion.currentHero) * sceneEase;
-      motion.currentObject += (motion.targetObject - motion.currentObject) * sceneEase;
-      motion.currentGallery += (motion.targetGallery - motion.currentGallery) * galleryEase;
+      const isMobileHero = window.innerWidth < 760;
+      const heroSceneEase = isMobileHero ? 1 - Math.exp(-delta / 100) : sceneEase;
+      motion.currentHero += (motion.targetHero - motion.currentHero) * heroSceneEase;
+
+      const heroShrink = isMobileHero
+        ? 1 - (1 - motion.currentHero) ** 1.85
+        : motion.currentHero;
+      const heroStretch = isMobileHero ? Math.sin(motion.currentHero * Math.PI) * 0.07 : 0;
 
       document.documentElement.style.setProperty("--hero-p", motion.currentHero.toFixed(4));
-      document.documentElement.style.setProperty("--object-p", motion.currentObject.toFixed(4));
-      document.documentElement.style.setProperty("--gallery-p", motion.currentGallery.toFixed(4));
-      if (trackRef.current && window.innerWidth >= 760) {
-        trackRef.current.style.transform = `translate3d(${-motion.currentGallery * motion.galleryTravel}px, 0, 0)`;
-      }
+      document.documentElement.style.setProperty("--hero-shrink", heroShrink.toFixed(4));
+      document.documentElement.style.setProperty("--hero-stretch", heroStretch.toFixed(4));
 
-      const moving =
-        Math.abs(motion.targetHero - motion.currentHero) > 0.0005 ||
-        Math.abs(motion.targetObject - motion.currentObject) > 0.0005 ||
-        Math.abs(motion.targetGallery - motion.currentGallery) > 0.0005;
-
+      const moving = Math.abs(motion.targetHero - motion.currentHero) > 0.0005;
       frame = moving ? window.requestAnimationFrame(render) : 0;
     };
 
@@ -197,50 +210,33 @@ export default function Home() {
       }
     };
 
-    const handleResize = () => {
-      syncGalleryGeometry();
-      requestUpdate();
-    };
-
     const observer = new IntersectionObserver(
-      (entries) => entries.forEach((entry) => entry.target.classList.toggle("is-visible", entry.isIntersecting)),
-      { threshold: 0.16, rootMargin: "0px 0px -6% 0px" },
+      (entries) =>
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+          }
+        }),
+      { threshold: 0.04, rootMargin: "0px 0px 80px 0px" },
     );
     document.querySelectorAll("[data-reveal], [data-type]").forEach((element) => observer.observe(element));
 
-    const resizeObserver = new ResizeObserver(() => {
-      syncGalleryGeometry();
-      requestUpdate();
-    });
-    if (trackRef.current) resizeObserver.observe(trackRef.current);
-
-    syncGalleryGeometry();
-    document.fonts.ready.then(() => {
-      if (disposed) return;
-      syncGalleryGeometry();
-      requestUpdate();
-    });
     requestUpdate();
     window.addEventListener("scroll", requestUpdate, { passive: true });
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", requestUpdate);
     return () => {
-      disposed = true;
       observer.disconnect();
-      resizeObserver.disconnect();
       window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("resize", handleResize);
-      galleryElement?.style.removeProperty("height");
+      window.removeEventListener("resize", requestUpdate);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
 
   useEffect(() => {
-    const locked = menuOpen || detailOpen;
-    document.body.style.overflow = locked ? "hidden" : "";
+    document.body.style.overflow = menuOpen ? "hidden" : "";
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setMenuOpen(false);
-        setDetailOpen(false);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -248,192 +244,254 @@ export default function Home() {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKey);
     };
-  }, [menuOpen, detailOpen]);
+  }, [menuOpen]);
 
   return (
     <>
-      <div className={`loader ${ready ? "is-ready" : ""}`} aria-hidden="true">
-        <p>هوکا</p><div><i /></div><span>فرمونتی · تهران</span>
-      </div>
-
-      <header className={`topbar ${pastHero ? "is-light" : ""} ${headerOnDark ? "is-dark" : ""}`} aria-label="ناوبری اصلی">
+      <header className={`topbar ${pastHero ? "is-light is-past-hero" : ""} ${headerOnDark ? "is-dark" : ""}`} aria-label="ناوبری اصلی">
         <button className="nav-box nav-menu" type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-controls="site-menu">
           <span>فهرست</span><i aria-hidden="true" /><i aria-hidden="true" />
         </button>
         <a className="wordmark" href="#top" aria-label="هوکا، بازگشت به ابتدا">هوکا</a>
-        <a className="nav-box nav-cta" href="#menu">مشاهده منو</a>
+        <a className="nav-box nav-cta" href="#menu">منوی هوکا</a>
       </header>
 
       <aside id="site-menu" className={`menu-overlay ${menuOpen ? "is-open" : ""}`} aria-hidden={!menuOpen}>
         <button type="button" className="menu-close" onClick={() => setMenuOpen(false)}>بستن <span>×</span></button>
         <nav aria-label="فهرست صفحه">
           {[
-            ["۰۱", "معرفی", "#top"],
-            ["۰۲", "محصول شاخص", "#object"],
-            ["۰۳", "مجموعه", "#collection"],
-            ["۰۴", "منوی هوکا", "#menu"],
+            ["۰۱", "معرفی هوکا", "#top"],
+            ["۰۲", "چرخش تعاملی و طعم‌ها", "#experience"],
+            ["۰۳", "منوی مدل‌ها و طعم‌ها", "#menu"],
+            ["۰۴", "آیین آماده‌سازی", "#ritual"],
+            ["۰۵", "تماس و اطلاعات", "#contact"],
           ].map(([number, label, href]) => (
             <a href={href} key={label} onClick={() => setMenuOpen(false)}>
               <small>{number}</small><span>{label}</span><b>↙</b>
             </a>
           ))}
         </nav>
-        <div className="overlay-meta"><p>فرمونتی · تهران</p><p>منوی دیجیتال هوکا</p></div>
+        <div className="overlay-meta"><p>فرمونتی · تهران</p><p>منوی دیجیتال · هوکا</p></div>
       </aside>
 
       <main>
         <section className="hero-scroll" id="top" ref={heroRef} aria-labelledby="hero-title">
           <div className="hero-sticky">
             <div className="hero-frame">
-              <img src="/images/hero/hero-azure.jpg" alt="قلیان مدرن هوکا در فضای شبانه فرمونتی" fetchPriority="high" />
+              <img
+                src="/images/hero/hero-azure.jpg"
+                alt="قلیان مدرن هوکا در فضای شبانه فرمونتی"
+                width={1601}
+                height={2400}
+                decoding="async"
+                fetchPriority="high"
+              />
               <div className="hero-vignette" />
-              <div className={`hero-title ${ready ? "is-visible" : ""}`} id="hero-title" data-type>
-                <p>فرمونتی ارائه می‌کند</p>
-                <h1><TypeLine>آیین شب،</TypeLine><TypeLine delay={120} className="light">از نو.</TypeLine></h1>
-                <span>هوکا</span>
+              <div className="hero-title is-visible" id="hero-title" data-type>
+                <p className="hero-brand">هوکا</p>
+                <p className="hero-kicker">فرمونتی · تهران</p>
+                <h1>
+                  <TypeLine>مکثی آرام برای شب‌هایی</TypeLine>
+                  <TypeLine delay={120}>که عجله ندارند.</TypeLine>
+                </h1>
+                <p className="hero-tagline">منو دیجیتال هوکا</p>
               </div>
-              <p className="hero-side-note">تجربه‌ای آرام<br />برای شب‌هایی آهسته‌تر</p>
-              <div className="hero-bottom"><span>برای کشف بیشتر اسکرول کنید</span><i /><b>۰۱ / ۰۵</b></div>
+              <div className="hero-bottom"><b>۰۱ / ۰۵</b></div>
               <div className="hero-shrink-meta" aria-hidden="true"><span>هوکا / فرمونتی</span><span>تهران · ۱۴۰۵</span></div>
             </div>
           </div>
         </section>
 
-        <section className="object-intro" id="object" ref={objectRef} aria-labelledby="object-title">
-          <div className="section-kicker" data-reveal><span>محصول شاخص</span><i /><span>جسم</span></div>
-          <div className="object-title" data-type>
-            <h2 id="object-title"><TypeLine>فرم، به تجربه</TypeLine><TypeLine delay={110} className="light">تبدیل می‌شود.</TypeLine></h2>
-            <p data-reveal>در قلب شب، فرم و طعم به یک تجربه تبدیل می‌شوند؛ آرام، دقیق و به‌یادماندنی.</p>
+        <ManifestoScroll />
+
+        <section className="menu-section menu-fullscreen-section" id="menu" aria-labelledby="menu-title">
+          <div className="menu-head-wrap" data-reveal>
+            <div className="menu-title" data-type>
+              <span className="menu-kicker">منوی دیجیتال · فرمونتی تهران</span>
+              <h2 id="menu-title">
+                <TypeLine>انتخاب مدل و سرو</TypeLine>
+              </h2>
+            </div>
           </div>
 
-          <div className="object-composition">
-            <p className="object-ghost" aria-hidden="true">هوکا</p>
-            <div className="object-copy" data-reveal>
-              <span>مرحله بعد</span>
-              <p>این قاب در مرحله بعد میزبان مدل سه‌بعدی واقعی محصول خواهد بود و حرکت آن با ریتم اسکرول هماهنگ می‌شود.</p>
+          {/* Unified Full-Screen Editorial Canvas Card */}
+          <div className="menu-unified-fullscreen-card" key={active.id}>
+            {/* Background Full-Bleed Image */}
+            <div className="menu-canvas-bg">
+              <img
+                src={active.full}
+                alt={`قلیان ${active.name}`}
+                width={1600}
+                height={2000}
+                loading="eager"
+                decoding="async"
+              />
+              <div className="menu-canvas-overlay-top" aria-hidden="true" />
+              <div className="menu-canvas-overlay-bottom" aria-hidden="true" />
             </div>
-            <figure className="object-figure"><img src="/images/products/tulips/full.jpg" alt="قلیان تیولیپس به‌عنوان محصول شاخص هوکا" loading="lazy" /></figure>
-            <div className="object-index"><span>محصول</span><b>۰۱</b><small>مجموعه هوکا</small></div>
-          </div>
-        </section>
 
-        <section className="manifesto" aria-label="مانیفست هوکا">
-          <p className="section-kicker" data-reveal>جوهره هوکا</p>
-          <h2 data-type><TypeLine>جایی که فرم،</TypeLine><TypeLine delay={110} className="light">به آیین می‌رسد.</TypeLine></h2>
-          <div className="manifesto-stage">
-            <div className="manifesto-note" data-reveal>
-              <span>فصل دوم / تجربه</span>
-              <p>هر انتخاب، روایتی متفاوت از یک مکث مشترک است؛ با جزئیاتی که برای دیده‌شدن از نزدیک طراحی شده‌اند.</p>
-            </div>
-            <figure data-reveal><img src="/images/editorial/spectrum.jpg" alt="جزئیات فرم و رنگ هوکا" loading="lazy" /></figure>
-            <div className="manifesto-index" data-reveal><b>۰۴</b><span>فرم متفاوت<br />برای چهار حال‌وهوا</span></div>
-          </div>
-        </section>
-
-        <section className="gallery-scroll" id="collection" ref={galleryRef} aria-label="مجموعه محصولات هوکا">
-          <div className="gallery-sticky">
-            <div className="gallery-header">
-              <div className="section-kicker"><span>مجموعه هوکا</span><i /><span>چهار محصول</span></div>
-              <div className="gallery-progress" aria-hidden="true"><span>حرکت در مجموعه</span><i><b /></i><em>۰۱ — ۰۴</em></div>
-            </div>
-            <div className="gallery-track" ref={trackRef}>
-              <div className="gallery-opening">
-                <small>مجموعه سال ۱۴۰۵</small>
-                <h2 data-type><TypeLine>چهار روایت،</TypeLine><TypeLine delay={100} className="light">برای یک مکث.</TypeLine></h2>
+            {/* Top Floating Header on Image */}
+            <div className="menu-canvas-topbar">
+              <div className="canvas-badge-wrap">
+                <span className="showcase-badge">{active.badge}</span>
+                <span className="showcase-brand-hint">فرمونتی · تهران</span>
               </div>
-              {products.map((product) => (
-                <a className="gallery-card" href="#menu" key={product.id} onClick={() => setActiveId(product.id)}>
-                  <img src={product.full} alt={`قلیان ${product.name}`} loading="lazy" />
-                  <div className="gallery-shade" />
-                  <div className="card-top"><span>{product.index} / ۰۴</span><span>قلیان {product.name}</span></div>
-                  <div className="card-title"><h3>{product.name}</h3><span>مشاهده سرو ↙</span></div>
-                </a>
-              ))}
-              <div className="gallery-closing">
-                <p>منوی هوکا</p><h2>آیین خودت<br /><span className="light">را انتخاب کن.</span></h2><span>چهار سرو · یک شب</span>
+              <span className="showcase-counter">{active.index} / ۰۴</span>
+            </div>
+
+            {/* Side Prev / Next Arrows directly on Image */}
+            <button
+              type="button"
+              className="canvas-nav-arrow canvas-nav-prev"
+              onClick={() => {
+                const currentIndex = products.findIndex((p) => p.id === active.id);
+                const prevIndex = (currentIndex - 1 + products.length) % products.length;
+                selectProduct(products[prevIndex].id);
+              }}
+              aria-label="مدل قبلی"
+            >
+              <span aria-hidden="true">›</span>
+            </button>
+
+            <button
+              type="button"
+              className="canvas-nav-arrow canvas-nav-next"
+              onClick={() => {
+                const currentIndex = products.findIndex((p) => p.id === active.id);
+                const nextIndex = (currentIndex + 1) % products.length;
+                selectProduct(products[nextIndex].id);
+              }}
+              aria-label="مدل بعدی"
+            >
+              <span aria-hidden="true">‹</span>
+            </button>
+
+            {/* Bottom Integrated Editorial Glass Card DIRECTLY on Image */}
+            <div className="menu-canvas-bottom-panel">
+              {/* Floating Glass Model Switcher Tabs */}
+              <nav className="photo-model-switcher" role="tablist" aria-label="انتخاب مدل قلیان">
+                {products.map((product) => {
+                  const isSelected = active.id === product.id;
+                  return (
+                    <button
+                      type="button"
+                      key={product.id}
+                      role="tab"
+                      aria-selected={isSelected}
+                      className={`model-glass-tab ${isSelected ? "is-active" : ""}`}
+                      onClick={() => selectProduct(product.id)}
+                    >
+                      <span className="tab-idx">{product.index}</span>
+                      <span className="tab-name">{product.shortName}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {/* Single-Line Product Title & Price directly inside the Image Panel */}
+              <div className="model-single-row">
+                <h3 className="model-main-title">{active.name}</h3>
+                <div className="model-price-box">
+                  <span className="model-price-label">سرو با پذیرایی:</span>
+                  <strong className="model-price-num">{active.price}</strong>
+                </div>
+              </div>
+
+              {/* Tobacco Flavor Selection Chips inside the Glass Panel */}
+              <div className="card-flavors-row">
+                <div className="flavors-bar-head">
+                  <span className="flavors-bar-title">طعم‌های منتخب (تا ۲ مورد):</span>
+                  <span className="flavors-bar-count">{selectedFlavors.length} از ۲ مورد</span>
+                </div>
+                <div className="flavors-chips-grid">
+                  {[
+                    "ترکیب ویژه فرمونتی",
+                    "شب‌های مسکو",
+                    "لاو ۶۶",
+                    "دوسیب فاخر",
+                    "بلوبری یخ",
+                    "انگور نعناع",
+                    "پرتقال نعناع",
+                    "هندوانه یخ",
+                  ].map((flavor) => {
+                    const isSelected = selectedFlavors.includes(flavor);
+                    return (
+                      <button
+                        type="button"
+                        key={flavor}
+                        className={`flavor-mini-chip ${isSelected ? "is-selected" : ""}`}
+                        aria-pressed={isSelected}
+                        onClick={() => toggleFlavor(flavor)}
+                      >
+                        <span className="chip-check">{isSelected ? "✓" : "+"}</span>
+                        <span className="chip-text">{flavor}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="menu-section" id="menu" aria-labelledby="menu-title">
-          <div className="section-kicker" data-reveal><span>منوی هوکا</span><i /><span>فرمونتی</span></div>
-          <div className="menu-title" data-type>
-            <h2 id="menu-title"><TypeLine>تجربه‌ات را</TypeLine><TypeLine delay={110} className="light">انتخاب کن.</TypeLine></h2>
-            <p data-reveal>چهار انتخاب؛ از فرم مجسمه‌وار تا سرو کلاسیک.</p>
-          </div>
-
-          <div className="product-selector" role="tablist" aria-label="انتخاب مدل قلیان" data-reveal>
-            {products.map((product) => (
-              <button type="button" role="tab" aria-selected={active.id === product.id} className={active.id === product.id ? "is-active" : ""} key={product.id} onClick={() => setActiveId(product.id)}>
-                <small>{product.index}</small><span>{product.name}</span><i>قلیان {product.name}</i>
-              </button>
-            ))}
-          </div>
-
-          <div className="menu-product">
-            <article className="product-info" key={`${active.id}-info`}>
-              <div className="product-heading"><span>{active.index} / ۰۴</span><h3>{active.name}</h3><p>قلیان {active.name}</p></div>
-              <p className="product-description">{active.description}</p>
-              <button className="serve-detail" type="button" onClick={() => setDetailOpen(true)} aria-label={`نمایش جزئیات قلیان ${active.name}`}>
-                <span className="detail-image"><img src={active.detail} alt={`جزئیات قلیان ${active.name}`} /><i>نمای نزدیک</i></span>
-                <span className="detail-copy"><small>جزئیات سرو</small><strong>{active.note}</strong><b>نمایش جزئیات ↙</b></span>
-              </button>
-              <div className="product-price"><span>قیمت سرو</span><strong>{active.price}</strong></div>
-            </article>
-            <figure className="product-image" key={`${active.id}-image`}>
-              <img src={active.full} alt={`قلیان ${active.name}`} />
-              <figcaption><span>هوکا / {active.index}</span><span>فرمونتی · تهران</span></figcaption>
-            </figure>
-          </div>
-        </section>
-
-        <section className="closing-story" aria-label="گالری هوکا">
-          <div className="closing-grid" data-reveal>
-            <figure><img src="/images/editorial/lineup.jpg" alt="مجموعه مدل‌های هوکا" loading="lazy" /></figure>
-            <figure><img src="/images/editorial/onyx.jpg" alt="مدل مشکی هوکا" loading="lazy" /></figure>
-            <figure><img src="/images/editorial/spectrum.jpg" alt="مدل رنگی هوکا" loading="lazy" /></figure>
-          </div>
-          <blockquote data-type><TypeLine>برای میز طراحی شده؛</TypeLine><TypeLine delay={110} className="light">پس از شب، به یاد می‌ماند.</TypeLine></blockquote>
-        </section>
+        <ClosingGallery />
       </main>
 
-      <footer id="contact">
-        <div className="footer-meta"><span>هوکا در فرمونتی</span><span>تهران · شهرک غرب</span></div>
+      <footer id="contact" className="footer-minimal">
+        <div className="footer-minimal-inner">
+          <div className="footer-minimal-brand">
+            <span className="footer-mini-kicker">فرمونتی · تهران</span>
+            <h2 className="footer-mini-title">وقت مکث است.</h2>
+          </div>
 
-        <div className="footer-statement" data-type>
-          <p>پایان منو، آغاز یک شب آرام</p>
-          <h2><TypeLine>برای یک مکث،</TypeLine><TypeLine delay={110} className="light">وقت هست.</TypeLine></h2>
+          {/* Social & Contact Only: Instagram and Direct Call */}
+          <nav className="footer-icon-bar" aria-label="راه‌های ارتباط با سالن فرمونتی">
+            <a
+              href="tel:+989912221025"
+              className="footer-icon-pill"
+              aria-label="تماس تلفنی با سالن فرمونتی"
+            >
+              <span className="icon-circle">
+                <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </span>
+              <span className="pill-text" dir="ltr">۰۹۹۱ ۲۲۲ ۱۰۲۵</span>
+            </a>
+
+            <a
+              href="https://www.instagram.com/fermontee.restaurant/"
+              target="_blank"
+              rel="noreferrer"
+              className="footer-icon-pill"
+              aria-label="صفحه اینستاگرام رستوران فرمونتی"
+            >
+              <span className="icon-circle">
+                <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+              </span>
+              <span className="pill-text">اینستاگرام فرمونتی</span>
+            </a>
+          </nav>
+
+          <div className="footer-minimal-details">
+            <p>شهرک غرب، خیابان ایران‌زمین، خیابان مهستان، نبش کوچه دوم</p>
+            <span className="detail-dot" aria-hidden="true">·</span>
+            <p>پذیرایی: همه‌روزه از ۸:۰۰ صبح الی ۲۴:۰۰ بامداد</p>
+          </div>
+
+          <div className="footer-bottom-minimal">
+            <span>© ۱۴۰۵ هوکا · مجموعه رستوران فرمونتی</span>
+            <a href="#top" className="footer-back-link">
+              <span>بازگشت به بالا</span>
+              <b aria-hidden="true">↑</b>
+            </a>
+          </div>
         </div>
-
-        <div className="footer-contact-grid" data-reveal>
-          <section>
-            <small>نشانی</small>
-            <a href="https://www.google.com/maps/search/?api=1&query=Fermontee+Restaurant+Tehran" target="_blank" rel="noreferrer">تهران، شهرک غرب، خیابان ایران‌زمین، خیابان مهستان، نبش کوچه دوم <b>↗</b></a>
-          </section>
-          <section>
-            <small>رزرو و تماس</small>
-            <a className="footer-phone" href="tel:+989912221025" dir="ltr">۰۹۹۱ ۲۲۲ ۱۰۲۵</a>
-            <span>هر روز، از ۸:۰۰ تا ۲۴:۰۰</span>
-          </section>
-          <section>
-            <small>ارتباط</small>
-            <a href="https://www.instagram.com/fermontee.restaurant/" target="_blank" rel="noreferrer">اینستاگرام <b>↗</b></a>
-            <a href="https://wa.me/message/44UP6TCPTX6CB1" target="_blank" rel="noreferrer">واتساپ <b>↗</b></a>
-          </section>
-        </div>
-
-        <div className="footer-word" aria-hidden="true">هوکا</div>
-        <div className="footer-bottom"><span>© ۱۴۰۵ هوکا · فرمونتی</span><a href="#top">بازگشت به بالا ↑</a><span>از صبحانه تا شام، میزبان شما</span></div>
       </footer>
-
-      <div className={`detail-overlay ${detailOpen ? "is-open" : ""}`} aria-hidden={!detailOpen} role="dialog" aria-modal="true" aria-label={`جزئیات قلیان ${active.name}`}>
-        <button type="button" className="detail-close" onClick={() => setDetailOpen(false)}>بستن <span>×</span></button>
-        <div className="detail-stage">
-          <figure key={`${active.id}-detail`}><img src={active.detail} alt={active.detailText} /></figure>
-          <div className="detail-meta"><span>{active.index} / ۰۴</span><h2>{active.name}</h2><p>{active.detailText}</p><small>{active.note}</small></div>
-        </div>
-      </div>
     </>
   );
 }

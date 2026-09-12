@@ -1,13 +1,12 @@
 # Hooka brand asset catalog
 
-The source archive in `../Brand Assets` is intentionally left untouched. The site uses optimized, renamed derivatives under `public/images`.
+The source archive in `../Brand Assets` has been deduplicated and organized into 6 clean categorized folders. The site uses optimized, renamed derivatives under `public/images`.
 
 ## Inventory
 
-- 51 supplied visual files: 50 JPEGs and 1 PNG.
-- 4 JPEG contact sheets and 1 tall legacy menu composition.
-- 46 exported photographs, of which 15 are byte-identical duplicate pairs.
-- 31 unique photographs after exact duplicate removal.
+- Organized into: `01-Products-Tulips`, `02-Products-Wookah`, `03-Products-Arabic`, `04-Products-Economy`, `05-Beverages-Drinks`, `06-ContactSheets-References`.
+- 15 byte-identical duplicate copies removed (~170MB saved).
+- 36 unique high-resolution original asset files cataloged.
 
 ## Current-menu products
 
