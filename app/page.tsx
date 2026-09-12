@@ -338,15 +338,6 @@ export default function Home() {
         <ManifestoScroll />
 
         <section className="menu-section menu-fullscreen-section" id="menu" aria-labelledby="menu-title">
-          <div className="menu-head-wrap" data-reveal>
-            <div className="menu-title" data-type>
-              <span className="menu-kicker">منوی دیجیتال · فرمونتی تهران</span>
-              <h2 id="menu-title">
-                <TypeLine>انتخاب مدل و سرو</TypeLine>
-              </h2>
-            </div>
-          </div>
-
           {/* Unified Full-Screen Editorial Canvas Card */}
           <div
             className="menu-unified-fullscreen-card"
@@ -368,9 +359,14 @@ export default function Home() {
               <div className="menu-canvas-overlay-bottom" aria-hidden="true" />
             </div>
 
-            {/* Top Floating Header on Image */}
+            {/* Top Integrated Editorial Header Directly on Image Canvas */}
             <div className="menu-canvas-topbar">
-              <span className="showcase-brand-hint">فرمونتی · تهران</span>
+              <div className="canvas-header-text">
+                <span className="menu-canvas-kicker">منوی دیجیتال · فرمونتی تهران</span>
+                <h2 className="menu-canvas-title" id="menu-title">
+                  انتخاب مدل و سرو
+                </h2>
+              </div>
               <span className="showcase-counter">{active.index} / ۰۴</span>
             </div>
 
