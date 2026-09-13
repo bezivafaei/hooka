@@ -1,6 +1,5 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { useEffect, useRef } from "react";
 import { setStyleIfChanged } from "./observe-resize";
 
@@ -50,18 +49,22 @@ const productSteps: ProductStep[] = [
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(Math.max(value, min), max);
 
-const easeInOut = (value: number) => value * value * (3 - 2 * value);
+// Smooth Hermite interpolation for cinema-like dissolve transitions
+const smoothstep = (edge0: number, edge1: number, x: number) => {
+  const t = clamp((x - edge0) / Math.max(edge1 - edge0, 0.0001));
+  return t * t * (3 - 2 * t);
+};
 
 type ClosingConfig = {
   multiplier: number;
 };
 
 const desktopConfig: ClosingConfig = {
-  multiplier: 4.2,
+  multiplier: 3.3,
 };
 
 const mobileConfig: ClosingConfig = {
-  multiplier: 3.8,
+  multiplier: 2.85,
 };
 
 function getConfig(): ClosingConfig {
@@ -69,70 +72,62 @@ function getConfig(): ClosingConfig {
 }
 
 /**
- * Clean 4-step timeline without any empty black void:
- * - Step 0 (0.00 -> 0.20): 100% visible immediately upon entering
- * - Crossfade 0 -> 1: (0.20 -> 0.28)
- * - Step 1 (0.28 -> 0.46): 100% visible
- * - Crossfade 1 -> 2: (0.46 -> 0.54)
- * - Step 2 (0.54 -> 0.72): 100% visible
- * - Crossfade 2 -> 3: (0.72 -> 0.80)
- * - Step 3 (0.80 -> 1.00+): 100% visible until footer scrolls over (no black screen at end)
+ * High-end Cinema Dissolve Timeline:
+ * - Step 0: Fully visible (0.00 -> 0.22), smoothly crossfades out to Step 1 (0.22 -> 0.38)
+ * - Step 1: Smoothly crossfades in (0.22 -> 0.38), peak hold (0.38 -> 0.48), crossfades out (0.48 -> 0.64)
+ * - Step 2: Smoothly crossfades in (0.48 -> 0.64), peak hold (0.64 -> 0.74), crossfades out (0.74 -> 0.88)
+ * - Step 3: Smoothly crossfades in (0.74 -> 0.88), remains 100% visible through end (0.88 -> 1.00+)
  */
 function stepFocus(progress: number, index: number) {
   if (index === 0) {
-    if (progress <= 0.20) return 1;
-    if (progress < 0.28) return easeInOut(clamp((0.28 - progress) / 0.08));
+    if (progress <= 0.22) return 1;
+    if (progress < 0.38) return 1 - smoothstep(0.22, 0.38, progress);
     return 0;
   }
   if (index === 1) {
-    if (progress <= 0.20) return 0;
-    if (progress < 0.28) return easeInOut(clamp((progress - 0.20) / 0.08));
-    if (progress <= 0.46) return 1;
-    if (progress < 0.54) return easeInOut(clamp((0.54 - progress) / 0.08));
+    if (progress <= 0.22) return 0;
+    if (progress < 0.38) return smoothstep(0.22, 0.38, progress);
+    if (progress <= 0.48) return 1;
+    if (progress < 0.64) return 1 - smoothstep(0.48, 0.64, progress);
     return 0;
   }
   if (index === 2) {
-    if (progress <= 0.46) return 0;
-    if (progress < 0.54) return easeInOut(clamp((progress - 0.46) / 0.08));
-    if (progress <= 0.72) return 1;
-    if (progress < 0.80) return easeInOut(clamp((0.80 - progress) / 0.08));
+    if (progress <= 0.48) return 0;
+    if (progress < 0.64) return smoothstep(0.48, 0.64, progress);
+    if (progress <= 0.74) return 1;
+    if (progress < 0.88) return 1 - smoothstep(0.74, 0.88, progress);
     return 0;
   }
   if (index === 3) {
-    if (progress <= 0.72) return 0;
-    if (progress < 0.80) return easeInOut(clamp((progress - 0.72) / 0.08));
-    return 1; // Stays fully visible at end
+    if (progress <= 0.74) return 0;
+    if (progress < 0.88) return smoothstep(0.74, 0.88, progress);
+    return 1;
   }
   return 0;
 }
 
 function stepScale(progress: number, index: number) {
-  const centers = [0.10, 0.37, 0.63, 0.88];
+  const centers = [0.11, 0.43, 0.69, 0.94];
   const dist = Math.abs(progress - centers[index]);
-  const t = clamp(1 - dist / 0.20);
-  return 1.0 + Math.sin(t * Math.PI) * 0.035;
+  const t = clamp(1 - dist / 0.24);
+  return 1.0 + Math.sin(t * Math.PI) * 0.024;
 }
 
-function preloadImages() {
-  return Promise.all(
-    productSteps.map(
-      (step) =>
-        new Promise<void>((resolve) => {
-          const image = new Image();
-          image.decoding = "async";
-          const finish = () => resolve();
-          image.onload = () => {
-            if (typeof image.decode === "function") {
-              image.decode().then(finish).catch(finish);
-              return;
-            }
-            finish();
-          };
-          image.onerror = finish;
-          image.src = step.src;
-        }),
-    ),
-  );
+// Immediate eager preloader for instant zero-lag gallery display
+let cachedClosingImages: HTMLImageElement[] | null = null;
+function preloadAllClosingImages() {
+  if (cachedClosingImages) return;
+  if (typeof window === "undefined") return;
+
+  cachedClosingImages = productSteps.map((step) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = step.src;
+    if (typeof image.decode === "function") {
+      image.decode().catch(() => {});
+    }
+    return image;
+  });
 }
 
 export function ClosingGallery() {
@@ -140,7 +135,6 @@ export function ClosingGallery() {
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const visualRefs = useRef<(HTMLElement | null)[]>([]);
   const copyRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const imageReadyRef = useRef<boolean[]>(productSteps.map(() => false));
   const configRef = useRef<ClosingConfig>(desktopConfig);
   const requestUpdateRef = useRef<() => void>(() => {});
 
@@ -150,6 +144,9 @@ export function ClosingGallery() {
 
     let raf = 0;
     let disposed = false;
+
+    // Immediately kick off image fetching & GPU decode
+    preloadAllClosingImages();
 
     const syncHeight = () => {
       configRef.current = getConfig();
@@ -167,8 +164,7 @@ export function ClosingGallery() {
       const progress = clamp(-rect.top / travel);
 
       productSteps.forEach((_, index) => {
-        const focus = stepFocus(progress, index);
-        const visibleFocus = focus;
+        const visibleFocus = stepFocus(progress, index);
         const visual = visualRefs.current[index];
         const copy = copyRefs.current[index];
         const step = stepRefs.current[index];
@@ -177,18 +173,18 @@ export function ClosingGallery() {
 
         if (visual) {
           visual.style.opacity = visibleFocus.toFixed(3);
-          visual.style.transform = `scale(${scale.toFixed(4)})`;
+          visual.style.transform = `scale(${scale.toFixed(4)}) translate3d(0, 0, 0) translateZ(0)`;
           visual.style.visibility = visibleFocus > 0.001 ? "visible" : "hidden";
         }
 
         if (copy) {
           copy.style.opacity = visibleFocus.toFixed(3);
-          copy.style.transform = `translate3d(0, ${(1 - visibleFocus) * 8}px, 0)`;
-          copy.classList.toggle("is-active", visibleFocus > 0.62);
+          copy.style.transform = `translate3d(0, ${((1 - visibleFocus) * 10).toFixed(1)}px, 0)`;
+          copy.classList.toggle("is-active", visibleFocus > 0.55);
         }
 
         if (step) {
-          step.classList.toggle("is-active", visibleFocus > 0.62);
+          step.classList.toggle("is-active", visibleFocus > 0.55);
         }
       });
     };
@@ -205,7 +201,6 @@ export function ClosingGallery() {
 
     let initialWidth = typeof window !== "undefined" ? window.innerWidth : 0;
     const handleResize = () => {
-      // Only recompute height if the screen width changes (orientation or desktop window resize)
       if (Math.abs(window.innerWidth - initialWidth) > 50) {
         initialWidth = window.innerWidth;
         syncHeight();
@@ -215,29 +210,12 @@ export function ClosingGallery() {
 
     syncHeight();
     update();
-    preloadImages().then(() => {
-      if (disposed) return;
-      imageReadyRef.current = productSteps.map(() => true);
-      requestUpdate();
-    });
-
-    const prefetchMargin = `${Math.ceil(window.innerHeight * 1.2)}px 0px`;
-    const prefetchObserver = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        preloadImages();
-        prefetchObserver.disconnect();
-      },
-      { rootMargin: prefetchMargin },
-    );
-    prefetchObserver.observe(section);
 
     window.addEventListener("scroll", requestUpdate, { passive: true });
     window.addEventListener("resize", handleResize);
 
     return () => {
       disposed = true;
-      prefetchObserver.disconnect();
       window.removeEventListener("scroll", requestUpdate);
       window.removeEventListener("resize", handleResize);
       if (raf) window.cancelAnimationFrame(raf);
@@ -270,7 +248,6 @@ export function ClosingGallery() {
                 decoding="async"
                 fetchPriority={index === 0 ? "high" : "auto"}
                 onLoad={() => {
-                  imageReadyRef.current[index] = true;
                   requestUpdateRef.current();
                 }}
               />

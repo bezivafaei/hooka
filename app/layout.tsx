@@ -63,6 +63,12 @@ const structuredData = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fa" dir="rtl">
+      <head>
+        <link rel="preload" as="image" href="/images/manifesto/frames/frame-001.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/images/manifesto/frames/frame-002.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/images/closing/closing-01.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/images/flavors/apple-minimal.webp" type="image/webp" />
+      </head>
       <body>
         <script
           type="application/ld+json"

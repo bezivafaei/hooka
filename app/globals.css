@@ -675,38 +675,64 @@ footer::after {
 }
 
 .flavor-showcase-apple {
-  top: 12%;
+  top: 10%;
   right: clamp(24px, 7vw, 120px);
 }
 
 .flavor-showcase-grape {
-  bottom: 11%;
+  bottom: 10%;
   left: clamp(24px, 7vw, 120px);
 }
 
 .flavor-showcase-citrus {
-  top: 15%;
+  top: 12%;
   left: clamp(24px, 7vw, 120px);
 }
 
+/* Radiant Color Aura disk behind each fruit */
+.flavor-aura {
+  position: absolute;
+  inset: -15%;
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 0;
+  filter: blur(28px);
+  will-change: transform, opacity;
+  transition: opacity 0.3s ease;
+}
+
+.flavor-aura-apple {
+  background: radial-gradient(circle, rgba(135, 215, 110, 0.32) 0%, rgba(201, 155, 83, 0.15) 45%, transparent 70%);
+}
+
+.flavor-aura-grape {
+  background: radial-gradient(circle, rgba(165, 85, 205, 0.35) 0%, rgba(201, 155, 83, 0.15) 45%, transparent 70%);
+}
+
+.flavor-aura-citrus {
+  background: radial-gradient(circle, rgba(240, 180, 55, 0.32) 0%, rgba(201, 155, 83, 0.15) 45%, transparent 70%);
+}
+
 .flavor-showcase-inner {
+  position: relative;
+  z-index: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
 }
 
 .flavor-art-wrap {
   position: relative;
   flex: none;
-  width: clamp(160px, 17vw, 230px);
-  height: clamp(160px, 17vw, 230px);
+  width: clamp(150px, 16vw, 220px);
+  height: clamp(150px, 16vw, 220px);
 }
 
 .flavor-art-wrap img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  /* Pure photorealistic soft natural shadow - zero color haze, zero floor glow */
   filter: drop-shadow(0 20px 32px rgba(0, 0, 0, 0.75));
   animation: floatFruitOrganic 7s ease-in-out infinite alternate;
 }
@@ -725,8 +751,72 @@ footer::after {
   100% { transform: translateY(0px) rotate(-1.5deg) scale(0.98); }
 }
 
-.flavor-ambient-glow {
-  display: none !important;
+/* Luxury Glassmorphic Tag */
+.flavor-luxury-tag {
+  direction: rtl;
+  padding: 8px 14px;
+  background: rgba(18, 16, 14, 0.78);
+  border: 1px solid rgba(214, 168, 108, 0.32);
+  border-radius: 14px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+  align-items: center;
+  width: max-content;
+  max-width: 220px;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.flavor-tag-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 1px;
+}
+
+.flavor-tag-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #c99b53;
+  box-shadow: 0 0 8px #c99b53;
+}
+
+.flavor-tag-badge {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #d6a86c;
+}
+
+.flavor-tag-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #f8f6f1;
+}
+
+.flavor-tag-sub {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: rgba(241, 238, 231, 0.65);
+}
+
+.flavor-tag-note {
+  font-size: 9.5px;
+  color: #e5bf7e;
+  margin-top: 2px;
 }
 
 @media (max-width: 760px) {
@@ -2098,20 +2188,49 @@ footer::after {
   }
   .flavor-showcase-apple {
     top: 7% !important;
-    right: 16px !important;
+    right: 14px !important;
     left: auto !important;
   }
   .flavor-showcase-grape {
-    bottom: 7% !important;
-    left: 16px !important;
+    bottom: 8% !important;
+    left: 14px !important;
+    right: auto !important;
+  }
+  .flavor-showcase-citrus {
+    top: 8% !important;
+    left: 14px !important;
     right: auto !important;
   }
   .flavor-showcase-inner {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
   }
   .flavor-art-wrap {
-    width: clamp(105px, 29vw, 140px) !important;
-    height: clamp(105px, 29vw, 140px) !important;
+    width: clamp(90px, 25vw, 120px) !important;
+    height: clamp(90px, 25vw, 120px) !important;
+  }
+  .flavor-luxury-tag {
+    max-width: 155px !important;
+    padding: 5px 9px !important;
+    border-radius: 10px !important;
+    gap: 1px !important;
+  }
+  .flavor-tag-header {
+    gap: 4px !important;
+  }
+  .flavor-tag-badge {
+    font-size: 8.5px !important;
+  }
+  .flavor-tag-title {
+    font-size: 11px !important;
+  }
+  .flavor-tag-sub {
+    font-size: 8px !important;
+  }
+  .flavor-tag-note {
+    font-size: 8px !important;
   }
   .manifesto-overlay {
     position: absolute;
