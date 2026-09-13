@@ -183,7 +183,11 @@ export function ManifestoScroll() {
       const pixelWidth = Math.round(width * dpr);
       const pixelHeight = Math.round(height * dpr);
 
-      if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      if (
+        canvas.width === 0 ||
+        Math.abs(canvas.width - pixelWidth) > 8 ||
+        Math.abs(canvas.height - pixelHeight) > 36
+      ) {
         canvas.width = pixelWidth;
         canvas.height = pixelHeight;
         currentDrawnIndexRef.current = -1;
@@ -298,6 +302,7 @@ export function ManifestoScroll() {
       }
     };
 
+    let initialWidth = typeof window !== "undefined" ? window.innerWidth : 0;
     const syncHeight = () => {
       // Extended scroll travel so 360 rotation is regal, deliberate, and provides comfortable pauses
       const multiplier = window.innerWidth < 768 ? 4.8 : 5.0;
@@ -305,9 +310,14 @@ export function ManifestoScroll() {
     };
 
     const handleResize = () => {
-      syncHeight();
-      currentDrawnIndexRef.current = -1;
-      requestUpdate();
+      // Only recompute height if the screen width changes (orientation or desktop window resize)
+      // to avoid mobile address bar collapse triggering section height changes during scroll!
+      if (Math.abs(window.innerWidth - initialWidth) > 50) {
+        initialWidth = window.innerWidth;
+        syncHeight();
+        currentDrawnIndexRef.current = -1;
+        requestUpdate();
+      }
     };
 
     syncHeight();

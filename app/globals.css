@@ -77,7 +77,6 @@
 html {
   background: var(--ink);
   color: var(--ink);
-  scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: #706c64 var(--ink);
 }
@@ -340,7 +339,7 @@ img { display: block; width: 100%; }
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100dvh;
+  height: 100svh;
   padding:
     calc(var(--hero-p) * 6vh)
     calc(var(--hero-p) * 5vw);
@@ -510,7 +509,7 @@ footer::after {
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100dvh;
+  height: 100svh;
   overflow: hidden;
   background: #0e0d0c;
 }
@@ -768,7 +767,7 @@ footer::after {
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100dvh;
+  height: 100svh;
   overflow: hidden;
   background:
     radial-gradient(circle at 78% 30%, rgba(156,81,47,.14), transparent 27%),
@@ -1573,7 +1572,7 @@ footer::after {
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100dvh;
+  height: 100svh;
   overflow: hidden;
   padding: 0;
 }
@@ -2057,7 +2056,7 @@ footer::after {
     left: 16px;
     right: 16px;
     top: auto;
-    bottom: calc(14vh - var(--hero-shrink) * 4vh);
+    bottom: calc(64px + env(safe-area-inset-bottom, 16px) - var(--hero-shrink) * 20px);
     width: auto;
     transform: translate3d(0, calc(var(--hero-shrink) * -18px), 0);
     text-align: center;

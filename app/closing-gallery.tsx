@@ -166,8 +166,6 @@ export function ClosingGallery() {
       const travel = Math.max(section.offsetHeight - viewport, 1);
       const progress = clamp(-rect.top / travel);
 
-      document.documentElement.style.setProperty("--closing-p", progress.toFixed(4));
-
       productSteps.forEach((_, index) => {
         const focus = stepFocus(progress, index);
         const visibleFocus = focus;
@@ -205,9 +203,14 @@ export function ClosingGallery() {
 
     requestUpdateRef.current = requestUpdate;
 
+    let initialWidth = typeof window !== "undefined" ? window.innerWidth : 0;
     const handleResize = () => {
-      syncHeight();
-      requestUpdate();
+      // Only recompute height if the screen width changes (orientation or desktop window resize)
+      if (Math.abs(window.innerWidth - initialWidth) > 50) {
+        initialWidth = window.innerWidth;
+        syncHeight();
+        requestUpdate();
+      }
     };
 
     syncHeight();

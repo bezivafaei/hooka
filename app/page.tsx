@@ -227,9 +227,11 @@ export default function Home() {
         : motion.currentHero;
       const heroStretch = isMobileHero ? Math.sin(motion.currentHero * Math.PI) * 0.07 : 0;
 
-      document.documentElement.style.setProperty("--hero-p", motion.currentHero.toFixed(4));
-      document.documentElement.style.setProperty("--hero-shrink", heroShrink.toFixed(4));
-      document.documentElement.style.setProperty("--hero-stretch", heroStretch.toFixed(4));
+      if (heroRef.current) {
+        heroRef.current.style.setProperty("--hero-p", motion.currentHero.toFixed(4));
+        heroRef.current.style.setProperty("--hero-shrink", heroShrink.toFixed(4));
+        heroRef.current.style.setProperty("--hero-stretch", heroStretch.toFixed(4));
+      }
 
       const moving = Math.abs(motion.targetHero - motion.currentHero) > 0.0005;
       frame = moving ? window.requestAnimationFrame(render) : 0;
@@ -254,13 +256,21 @@ export default function Home() {
     );
     document.querySelectorAll("[data-reveal], [data-type]").forEach((element) => observer.observe(element));
 
+    let initialWidth = typeof window !== "undefined" ? window.innerWidth : 0;
+    const handleResize = () => {
+      if (Math.abs(window.innerWidth - initialWidth) > 50) {
+        initialWidth = window.innerWidth;
+        requestUpdate();
+      }
+    };
+
     requestUpdate();
     window.addEventListener("scroll", requestUpdate, { passive: true });
-    window.addEventListener("resize", requestUpdate);
+    window.addEventListener("resize", handleResize);
     return () => {
       observer.disconnect();
       window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("resize", requestUpdate);
+      window.removeEventListener("resize", handleResize);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
