@@ -238,10 +238,12 @@ export default function Home() {
     };
 
     const requestUpdate = () => {
-      measure();
       if (!frame) {
         previousTime = performance.now();
-        frame = window.requestAnimationFrame(render);
+        frame = window.requestAnimationFrame((time) => {
+          measure();
+          render(time);
+        });
       }
     };
 

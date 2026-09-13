@@ -60,11 +60,11 @@ type ClosingConfig = {
 };
 
 const desktopConfig: ClosingConfig = {
-  multiplier: 3.3,
+  multiplier: 3.0,
 };
 
 const mobileConfig: ClosingConfig = {
-  multiplier: 2.85,
+  multiplier: 2.6,
 };
 
 function getConfig(): ClosingConfig {

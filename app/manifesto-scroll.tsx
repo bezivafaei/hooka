@@ -13,7 +13,7 @@ function framePath(index: number) {
   return `${FRAME_BASE}-${String(index + 1).padStart(3, "0")}.webp`;
 }
 
-// Global memory cache of decoded frame images so switching or re-rendering is instantaneous
+// Global cached image instances so re-renders or navigation are instantaneous
 let globalFrames: HTMLImageElement[] | null = null;
 
 function getOrInitFrames(): HTMLImageElement[] {
@@ -77,15 +77,12 @@ export function ManifestoScroll() {
   const statementRef = useRef<HTMLHeadingElement>(null);
 
   const appleFloatRef = useRef<HTMLDivElement>(null);
-  const appleTagRef = useRef<HTMLDivElement>(null);
   const appleAuraRef = useRef<HTMLDivElement>(null);
 
   const grapeFloatRef = useRef<HTMLDivElement>(null);
-  const grapeTagRef = useRef<HTMLDivElement>(null);
   const grapeAuraRef = useRef<HTMLDivElement>(null);
 
   const citrusFloatRef = useRef<HTMLDivElement>(null);
-  const citrusTagRef = useRef<HTMLDivElement>(null);
   const citrusAuraRef = useRef<HTMLDivElement>(null);
 
   const degreeRef = useRef<HTMLSpanElement>(null);
@@ -104,18 +101,17 @@ export function ManifestoScroll() {
     let rafId = 0;
     let isLoopRunning = false;
 
-    // Eagerly instantiate all 40 frames into memory
+    // Eagerly pre-instantiate all 40 frames into memory
     const frames = getOrInitFrames();
 
-    // Physics interpolation state for silky continuous rotation
-    let currentProgress = 0;
+    // High-responsiveness single lerp for immediate finger tracking with buttery 60fps interpolation
     let targetProgress = 0;
+    let currentProgress = 0;
     let currentFrameFloat = 0;
 
     const paint = (frameIndex: number, rotProgress: number) => {
       if (!frames.length) return;
 
-      // Find best available frame: exact target or nearest loaded frame
       let renderImage: HTMLImageElement | null = null;
       let usedIndex = -1;
 
@@ -180,10 +176,9 @@ export function ManifestoScroll() {
       ctx.restore();
     };
 
-    // Advanced 3D Spatial Physics for Floating Fruit Pieces
+    // Clean, high-performance 3D spatial orbit motion for minimalist fruit pieces
     const applyFruitMotion = (
       el: HTMLElement | null,
-      tagEl: HTMLElement | null,
       auraEl: HTMLElement | null,
       progress: number,
       start: number,
@@ -196,9 +191,13 @@ export function ManifestoScroll() {
       if (!el) return;
 
       if (progress < start || progress > end) {
-        el.style.opacity = "0";
-        el.style.visibility = "hidden";
-        if (auraEl) auraEl.style.opacity = "0";
+        if (el.style.visibility !== "hidden") {
+          el.style.opacity = "0";
+          el.style.visibility = "hidden";
+        }
+        if (auraEl && auraEl.style.opacity !== "0") {
+          auraEl.style.opacity = "0";
+        }
         return;
       }
 
@@ -209,21 +208,19 @@ export function ManifestoScroll() {
       if (progress < peakStart) {
         const t = clamp((progress - start) / Math.max(peakStart - start, 0.001));
         enterEase = 1 - Math.pow(1 - t, 3);
-        blur = (1 - enterEase) * 12;
+        blur = (1 - enterEase) * 10;
       } else if (progress > peakEnd) {
         const t = clamp((progress - peakEnd) / Math.max(end - peakEnd, 0.001));
         exitEase = Math.pow(t, 2.4);
-        blur = exitEase * 14;
+        blur = exitEase * 12;
       }
 
       const opacity = enterEase * (1 - exitEase);
       const dirX = side === "right" ? 1 : -1;
 
-      // 3D Orbital curve trajectory
-      const transX = (1 - enterEase) * (isMobile ? 32 : 65) * dirX - exitEase * (isMobile ? 22 : 45) * dirX;
-      const transY = (progress - (peakStart + peakEnd) / 2) * (isMobile ? -26 : -44) - exitEase * 22;
-      
-      // Dynamic 3D tilt
+      // 3D Orbital Trajectory
+      const transX = (1 - enterEase) * (isMobile ? 32 : 60) * dirX - exitEase * (isMobile ? 22 : 40) * dirX;
+      const transY = (progress - (peakStart + peakEnd) / 2) * (isMobile ? -24 : -40) - exitEase * 20;
       const rotY = (1 - enterEase) * 14 * dirX - exitEase * 12 * dirX;
       const rotZ = (1 - enterEase) * -5 * dirX + exitEase * 5 * dirX;
       const scale = 0.88 + enterEase * 0.16 - exitEase * 0.08;
@@ -231,19 +228,11 @@ export function ManifestoScroll() {
       el.style.opacity = opacity.toFixed(3);
       el.style.transform = `perspective(800px) translate3d(${transX.toFixed(1)}px, ${transY.toFixed(1)}px, 0) rotateY(${rotY.toFixed(1)}deg) rotateZ(${rotZ.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
       el.style.filter = blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : "none";
-      el.style.visibility = opacity > 0.005 ? "visible" : "hidden";
-
-      if (tagEl) {
-        const tagEnter = clamp((enterEase - 0.15) / 0.85);
-        const tagTransX = (1 - tagEnter) * 16 * dirX;
-        const tagTransY = (1 - tagEnter) * 8;
-        tagEl.style.opacity = (tagEnter * (1 - exitEase)).toFixed(3);
-        tagEl.style.transform = `translate3d(${tagTransX.toFixed(1)}px, ${tagTransY.toFixed(1)}px, 0)`;
-      }
+      el.style.visibility = "visible";
 
       if (auraEl) {
         const auraScale = 0.75 + enterEase * 0.35 - exitEase * 0.2;
-        auraEl.style.opacity = (opacity * 0.9).toFixed(3);
+        auraEl.style.opacity = (opacity * 0.85).toFixed(3);
         auraEl.style.transform = `scale(${auraScale.toFixed(3)})`;
       }
     };
@@ -251,14 +240,14 @@ export function ManifestoScroll() {
     const updateDOM = () => {
       const isMobile = window.innerWidth < 768;
 
-      // 1. Rotation completes smoothly at 0.82
-      const rotProgress = clamp(currentProgress / 0.82);
+      // 360 rotation completes smoothly at 0.78
+      const rotProgress = clamp(currentProgress / 0.78);
       const targetFrameFloat = rotProgress * (FRAME_COUNT - 1);
       
-      // Frame interpolation with inertia damping
+      // Fast, responsive frame interpolation (0.35 factor ensures instant finger tracking)
       const fDiff = targetFrameFloat - currentFrameFloat;
       if (Math.abs(fDiff) > 0.01) {
-        currentFrameFloat += fDiff * 0.22;
+        currentFrameFloat += fDiff * 0.35;
       } else {
         currentFrameFloat = targetFrameFloat;
       }
@@ -270,55 +259,51 @@ export function ManifestoScroll() {
 
       paint(activeFrameIndex, rotProgress);
 
-      // Degrees count to 360 over the rotation phase
       const degrees = Math.round(rotProgress * 360);
       if (degreeRef.current) {
         degreeRef.current.textContent = `${degrees}°`;
       }
 
-      // 2. Sequential Fruit Showcases (Apple -> Grape -> Citrus)
+      // Minimalist Floating Fruit Motion (Clean visuals, zero text clutter)
       applyFruitMotion(
         appleFloatRef.current,
-        appleTagRef.current,
         appleAuraRef.current,
         currentProgress,
         0.05,
         0.13,
-        0.21,
-        0.28,
+        0.20,
+        0.27,
         "right",
         isMobile,
       );
 
       applyFruitMotion(
         grapeFloatRef.current,
-        grapeTagRef.current,
         grapeAuraRef.current,
         currentProgress,
-        0.28,
-        0.36,
-        0.44,
-        0.52,
+        0.27,
+        0.35,
+        0.43,
+        0.50,
         "left",
         isMobile,
       );
 
       applyFruitMotion(
         citrusFloatRef.current,
-        citrusTagRef.current,
         citrusAuraRef.current,
         currentProgress,
-        0.52,
-        0.60,
-        0.68,
-        0.75,
+        0.50,
+        0.58,
+        0.66,
+        0.73,
         "right",
         isMobile,
       );
 
-      // 3. Central Statement: Appears at 0.73, fully readable until 0.88, then smoothly glides up
-      const textIn = clamp((currentProgress - 0.73) / 0.09);
-      const textOut = clamp((currentProgress - 0.90) / 0.08);
+      // Central Statement: Appears at 0.72, fully readable through 0.85, then naturally glides up
+      const textIn = clamp((currentProgress - 0.72) / 0.08);
+      const textOut = clamp((currentProgress - 0.88) / 0.09);
       const textEase = 1 - Math.pow(1 - textIn, 3);
       const textOp = textEase * (1 - textOut);
       const textTransY = (1 - textEase) * 16 - textOut * 24;
@@ -334,15 +319,14 @@ export function ManifestoScroll() {
         statement.classList.add("is-visible");
       }
 
-      // 4. Seamless Unstick / Exit Transition (0.83 -> 1.00):
-      // As the 360 video finishes its final turn, it naturally glides upward and prepares
-      // for the next section (#menu) without feeling stuck or halted!
+      // Effortless unstick & exit transition (0.80 -> 1.00):
+      // Before rotation fully stops, the section naturally prepares to glide into the next section
       if (media) {
-        const exitProgress = clamp((currentProgress - 0.83) / 0.17);
+        const exitProgress = clamp((currentProgress - 0.80) / 0.20);
         if (exitProgress > 0) {
           const exitEase = Math.pow(exitProgress, 1.8);
-          const mediaY = -exitEase * 38;
-          const mediaOp = 1 - exitEase * 0.28;
+          const mediaY = -exitEase * 42;
+          const mediaOp = 1 - exitEase * 0.25;
           media.style.transform = `translate3d(0, ${mediaY.toFixed(1)}px, 0)`;
           media.style.opacity = mediaOp.toFixed(3);
         } else {
@@ -352,24 +336,23 @@ export function ManifestoScroll() {
       }
     };
 
-    // Continuous Animation Loop with Inertia Lerp
     const loop = () => {
       if (disposed) return;
 
       const pDiff = targetProgress - currentProgress;
       if (Math.abs(pDiff) > 0.0001) {
-        currentProgress += pDiff * 0.16;
+        currentProgress += pDiff * 0.25;
       } else {
         currentProgress = targetProgress;
       }
 
       updateDOM();
 
-      const rotProgress = clamp(currentProgress / 0.82);
+      const rotProgress = clamp(currentProgress / 0.78);
       const targetFrameFloat = rotProgress * (FRAME_COUNT - 1);
       const isStillMoving =
-        Math.abs(targetProgress - currentProgress) > 0.0002 ||
-        Math.abs(targetFrameFloat - currentFrameFloat) > 0.02;
+        Math.abs(targetProgress - currentProgress) > 0.0003 ||
+        Math.abs(targetFrameFloat - currentFrameFloat) > 0.03;
 
       if (isStillMoving) {
         rafId = window.requestAnimationFrame(loop);
@@ -395,8 +378,8 @@ export function ManifestoScroll() {
 
     let initialWidth = typeof window !== "undefined" ? window.innerWidth : 0;
     const syncHeight = () => {
-      // Natural responsive scroll travel multiplier (tightened for mobile to prevent dragging)
-      const multiplier = window.innerWidth < 768 ? 2.9 : 3.5;
+      // Snappy and responsive travel: 2.6 on mobile, 3.2 on desktop
+      const multiplier = window.innerWidth < 768 ? 2.6 : 3.2;
       setStyleIfChanged(section, "height", `${Math.ceil(window.innerHeight * multiplier)}px`);
     };
 
@@ -435,10 +418,9 @@ export function ManifestoScroll() {
             <svg className="spin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.99 6.57 2.6L21 8m0 0v-6m0 6h-6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="spin-label">چرخش تعاملی ۳۶۰°</span>
+            <span className="spin-label">چرخش ۳۶۰°</span>
             <span className="spin-degree" ref={degreeRef}>۰°</span>
           </div>
-          <p className="spin-hint">برای چرخش و مشاهده طعم‌ها به پایین اسکرول کنید</p>
         </div>
 
         <div className="manifesto-media" ref={mediaRef}>
@@ -446,7 +428,7 @@ export function ManifestoScroll() {
           <div className="manifesto-vignette" aria-hidden="true" />
         </div>
 
-        {/* 1. Apple & Mint Showcase */}
+        {/* Pure Minimalist Floating Fruits with Radiant Depth Halo */}
         <aside className="flavor-showcase flavor-showcase-apple" ref={appleFloatRef} aria-label="طعم سیب و نعناع">
           <div className="flavor-aura flavor-aura-apple" ref={appleAuraRef} aria-hidden="true" />
           <div className="flavor-showcase-inner">
@@ -460,19 +442,9 @@ export function ManifestoScroll() {
                 decoding="async"
               />
             </div>
-            <div className="flavor-luxury-tag" ref={appleTagRef}>
-              <div className="flavor-tag-header">
-                <span className="flavor-tag-dot" />
-                <span className="flavor-tag-badge">ترکیب اختصاصی</span>
-              </div>
-              <h4 className="flavor-tag-title">سیب ترش & نعناع کوهی</h4>
-              <p className="flavor-tag-sub">Double Apple & Crisp Mint</p>
-              <span className="flavor-tag-note">طراوت خنک کوهستانی</span>
-            </div>
           </div>
         </aside>
 
-        {/* 2. Grape & Ice Showcase */}
         <aside className="flavor-showcase flavor-showcase-grape" ref={grapeFloatRef} aria-label="طعم انگور سیاه تازه">
           <div className="flavor-aura flavor-aura-grape" ref={grapeAuraRef} aria-hidden="true" />
           <div className="flavor-showcase-inner">
@@ -486,19 +458,9 @@ export function ManifestoScroll() {
                 decoding="async"
               />
             </div>
-            <div className="flavor-luxury-tag" ref={grapeTagRef}>
-              <div className="flavor-tag-header">
-                <span className="flavor-tag-dot" />
-                <span className="flavor-tag-badge">سرو سلطنتی</span>
-              </div>
-              <h4 className="flavor-tag-title">انگور سیاه شاهانی</h4>
-              <p className="flavor-tag-sub">Royal Black Grape & Chill</p>
-              <span className="flavor-tag-note">شیرینی عمیق و مخملی</span>
-            </div>
           </div>
         </aside>
 
-        {/* 3. Citrus & Mint Showcase */}
         <aside className="flavor-showcase flavor-showcase-citrus" ref={citrusFloatRef} aria-label="طعم مرکبات و نعناع">
           <div className="flavor-aura flavor-aura-citrus" ref={citrusAuraRef} aria-hidden="true" />
           <div className="flavor-showcase-inner">
@@ -511,15 +473,6 @@ export function ManifestoScroll() {
                 loading="eager"
                 decoding="async"
               />
-            </div>
-            <div className="flavor-luxury-tag" ref={citrusTagRef}>
-              <div className="flavor-tag-header">
-                <span className="flavor-tag-dot" />
-                <span className="flavor-tag-badge">عطر تابستانی</span>
-              </div>
-              <h4 className="flavor-tag-title">لیمو ترش سیسیلی & موهیتو</h4>
-              <p className="flavor-tag-sub">Zesty Citrus & Fresh Lime</p>
-              <span className="flavor-tag-note">انرژی‌بخش و مرکباتی</span>
             </div>
           </div>
         </aside>
