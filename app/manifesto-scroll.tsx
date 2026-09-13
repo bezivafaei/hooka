@@ -85,7 +85,6 @@ export function ManifestoScroll() {
   const citrusFloatRef = useRef<HTMLDivElement>(null);
   const citrusAuraRef = useRef<HTMLDivElement>(null);
 
-  const degreeRef = useRef<HTMLSpanElement>(null);
   const currentDrawnIndexRef = useRef(-1);
   const textShownRef = useRef(false);
 
@@ -259,11 +258,6 @@ export function ManifestoScroll() {
 
       paint(activeFrameIndex, rotProgress);
 
-      const degrees = Math.round(rotProgress * 360);
-      if (degreeRef.current) {
-        degreeRef.current.textContent = `${degrees}°`;
-      }
-
       // Minimalist Floating Fruit Motion (Clean visuals, zero text clutter)
       applyFruitMotion(
         appleFloatRef.current,
@@ -411,17 +405,6 @@ export function ManifestoScroll() {
     <section className="manifesto-scroll" id="experience" ref={sectionRef} aria-label="چرخش تعاملی و طعم‌های هوکا">
       <div className="manifesto-sticky">
         <div className="manifesto-glow" aria-hidden="true" />
-
-        <div className="manifesto-topbar" aria-hidden="true">
-          <div className="spin-badge">
-            <span className="spin-pulse" />
-            <svg className="spin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.99 6.57 2.6L21 8m0 0v-6m0 6h-6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span className="spin-label">چرخش ۳۶۰°</span>
-            <span className="spin-degree" ref={degreeRef}>۰°</span>
-          </div>
-        </div>
 
         <div className="manifesto-media" ref={mediaRef}>
           <canvas ref={canvasRef} aria-label="چرخش قلیان هوکا" role="img" />

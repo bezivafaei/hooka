@@ -49,7 +49,7 @@ const productSteps: ProductStep[] = [
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(Math.max(value, min), max);
 
-// Smooth Hermite interpolation for cinema-like dissolve transitions
+// Fast Hermite curve for cinema-quality dissolve
 const smoothstep = (edge0: number, edge1: number, x: number) => {
   const t = clamp((x - edge0) / Math.max(edge1 - edge0, 0.0001));
   return t * t * (3 - 2 * t);
@@ -60,60 +60,46 @@ type ClosingConfig = {
 };
 
 const desktopConfig: ClosingConfig = {
-  multiplier: 3.0,
+  multiplier: 2.8,
 };
 
 const mobileConfig: ClosingConfig = {
-  multiplier: 2.6,
+  multiplier: 2.4,
 };
 
 function getConfig(): ClosingConfig {
   return typeof window !== "undefined" && window.innerWidth < 760 ? mobileConfig : desktopConfig;
 }
 
-/**
- * High-end Cinema Dissolve Timeline:
- * - Step 0: Fully visible (0.00 -> 0.22), smoothly crossfades out to Step 1 (0.22 -> 0.38)
- * - Step 1: Smoothly crossfades in (0.22 -> 0.38), peak hold (0.38 -> 0.48), crossfades out (0.48 -> 0.64)
- * - Step 2: Smoothly crossfades in (0.48 -> 0.64), peak hold (0.64 -> 0.74), crossfades out (0.74 -> 0.88)
- * - Step 3: Smoothly crossfades in (0.74 -> 0.88), remains 100% visible through end (0.88 -> 1.00+)
- */
 function stepFocus(progress: number, index: number) {
   if (index === 0) {
-    if (progress <= 0.22) return 1;
-    if (progress < 0.38) return 1 - smoothstep(0.22, 0.38, progress);
+    if (progress <= 0.20) return 1;
+    if (progress < 0.34) return 1 - smoothstep(0.20, 0.34, progress);
     return 0;
   }
   if (index === 1) {
-    if (progress <= 0.22) return 0;
-    if (progress < 0.38) return smoothstep(0.22, 0.38, progress);
-    if (progress <= 0.48) return 1;
-    if (progress < 0.64) return 1 - smoothstep(0.48, 0.64, progress);
+    if (progress <= 0.20) return 0;
+    if (progress < 0.34) return smoothstep(0.20, 0.34, progress);
+    if (progress <= 0.52) return 1;
+    if (progress < 0.66) return 1 - smoothstep(0.52, 0.66, progress);
     return 0;
   }
   if (index === 2) {
-    if (progress <= 0.48) return 0;
-    if (progress < 0.64) return smoothstep(0.48, 0.64, progress);
-    if (progress <= 0.74) return 1;
-    if (progress < 0.88) return 1 - smoothstep(0.74, 0.88, progress);
+    if (progress <= 0.52) return 0;
+    if (progress < 0.66) return smoothstep(0.52, 0.66, progress);
+    if (progress <= 0.82) return 1;
+    if (progress < 0.94) return 1 - smoothstep(0.82, 0.94, progress);
     return 0;
   }
   if (index === 3) {
-    if (progress <= 0.74) return 0;
-    if (progress < 0.88) return smoothstep(0.74, 0.88, progress);
+    if (progress <= 0.82) return 0;
+    if (progress < 0.94) return smoothstep(0.82, 0.94, progress);
     return 1;
   }
   return 0;
 }
 
-function stepScale(progress: number, index: number) {
-  const centers = [0.11, 0.43, 0.69, 0.94];
-  const dist = Math.abs(progress - centers[index]);
-  const t = clamp(1 - dist / 0.24);
-  return 1.0 + Math.sin(t * Math.PI) * 0.024;
-}
-
-// Immediate eager preloader for instant zero-lag gallery display
+// Global cached preloaded images so GPU has textures decoded instantly
 let cachedClosingImages: HTMLImageElement[] | null = null;
 function preloadAllClosingImages() {
   if (cachedClosingImages) return;
@@ -132,11 +118,10 @@ function preloadAllClosingImages() {
 
 export function ClosingGallery() {
   const sectionRef = useRef<HTMLElement>(null);
-  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const visualRefs = useRef<(HTMLElement | null)[]>([]);
   const copyRefs = useRef<(HTMLDivElement | null)[]>([]);
   const configRef = useRef<ClosingConfig>(desktopConfig);
-  const requestUpdateRef = useRef<() => void>(() => {});
+  const activeVisibilityRef = useRef<boolean[]>(productSteps.map((_, i) => i === 0));
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -145,7 +130,7 @@ export function ClosingGallery() {
     let raf = 0;
     let disposed = false;
 
-    // Immediately kick off image fetching & GPU decode
+    // Immediately pre-decode images in GPU memory
     preloadAllClosingImages();
 
     const syncHeight = () => {
@@ -167,24 +152,32 @@ export function ClosingGallery() {
         const visibleFocus = stepFocus(progress, index);
         const visual = visualRefs.current[index];
         const copy = copyRefs.current[index];
-        const step = stepRefs.current[index];
-
-        const scale = stepScale(progress, index);
 
         if (visual) {
-          visual.style.opacity = visibleFocus.toFixed(3);
-          visual.style.transform = `scale(${scale.toFixed(4)}) translate3d(0, 0, 0) translateZ(0)`;
-          visual.style.visibility = visibleFocus > 0.001 ? "visible" : "hidden";
+          if (visibleFocus > 0.005) {
+            visual.style.opacity = visibleFocus.toFixed(3);
+            if (!activeVisibilityRef.current[index]) {
+              visual.style.visibility = "visible";
+              activeVisibilityRef.current[index] = true;
+            }
+          } else {
+            if (activeVisibilityRef.current[index]) {
+              visual.style.opacity = "0";
+              visual.style.visibility = "hidden";
+              activeVisibilityRef.current[index] = false;
+            }
+          }
         }
 
         if (copy) {
-          copy.style.opacity = visibleFocus.toFixed(3);
-          copy.style.transform = `translate3d(0, ${((1 - visibleFocus) * 10).toFixed(1)}px, 0)`;
-          copy.classList.toggle("is-active", visibleFocus > 0.55);
-        }
-
-        if (step) {
-          step.classList.toggle("is-active", visibleFocus > 0.55);
+          if (visibleFocus > 0.005) {
+            copy.style.opacity = visibleFocus.toFixed(3);
+            copy.style.transform = `translate3d(0, ${((1 - visibleFocus) * 8).toFixed(1)}px, 0)`;
+            copy.classList.toggle("is-active", visibleFocus > 0.5);
+          } else {
+            copy.style.opacity = "0";
+            copy.classList.remove("is-active");
+          }
         }
       });
     };
@@ -196,8 +189,6 @@ export function ClosingGallery() {
         update();
       });
     };
-
-    requestUpdateRef.current = requestUpdate;
 
     let initialWidth = typeof window !== "undefined" ? window.innerWidth : 0;
     const handleResize = () => {
@@ -242,14 +233,11 @@ export function ClosingGallery() {
               <img
                 src={step.src}
                 alt={step.alt}
-                width={1044}
-                height={1600}
+                width={1080}
+                height={1500}
                 loading="eager"
                 decoding="async"
                 fetchPriority={index === 0 ? "high" : "auto"}
-                onLoad={() => {
-                  requestUpdateRef.current();
-                }}
               />
             </figure>
           ))}
@@ -258,13 +246,7 @@ export function ClosingGallery() {
 
         <div className="closing-steps" aria-live="polite">
           {productSteps.map((step, index) => (
-            <div
-              className="closing-step"
-              key={step.name}
-              ref={(element) => {
-                stepRefs.current[index] = element;
-              }}
-            >
+            <div className="closing-step" key={step.name}>
               <div
                 className={`closing-step-copy ${index === 0 ? "is-active" : ""}`}
                 style={{ opacity: index === 0 ? 1 : 0 }}

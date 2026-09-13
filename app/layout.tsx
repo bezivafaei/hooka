@@ -67,6 +67,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="preload" as="image" href="/images/manifesto/frames/frame-001.webp" type="image/webp" />
         <link rel="preload" as="image" href="/images/manifesto/frames/frame-002.webp" type="image/webp" />
         <link rel="preload" as="image" href="/images/closing/closing-01.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/images/closing/closing-02.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/images/closing/closing-03.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/images/closing/closing-04.webp" type="image/webp" />
         <link rel="preload" as="image" href="/images/flavors/apple-minimal.webp" type="image/webp" />
       </head>
       <body>
